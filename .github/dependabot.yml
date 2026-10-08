@@ -4,6 +4,10 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      # We stay on Django 5.2 LTS on purpose; only take its patch releases.
+      - dependency-name: "django"
+        update-types: ["version-update:semver-major"]
     groups:
       python-deps:
         patterns: ["*"]
