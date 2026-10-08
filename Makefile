@@ -2,6 +2,7 @@
 
 install:  ## Install all dependencies (including dev) into .venv
 	uv sync
+	uv run pre-commit install
 
 dev:  ## Run the API locally with autoreload (needs `make db`)
 	uv run python manage.py migrate
