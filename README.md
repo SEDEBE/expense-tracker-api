@@ -42,7 +42,7 @@ Requires [uv](https://docs.astral.sh/uv/getting-started/installation/) and Docke
 
 ```bash
 cp .env.example .env
-make install   # create .venv and install dependencies
+make install   # create .venv, install dependencies and git hooks (pre-commit)
 make db        # start Postgres in Docker
 make dev       # migrate and run the dev server on :8000
 make test      # run tests with coverage
