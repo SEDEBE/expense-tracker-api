@@ -6,6 +6,7 @@ from apps.core.views import HealthView
 
 api_v1 = [
     path("auth/", include("apps.users.urls")),
+    path("", include("apps.expenses.urls")),
 ]
 
 urlpatterns = [

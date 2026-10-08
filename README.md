@@ -7,7 +7,7 @@
 REST API to track personal expenses: register, log in with JWT, record expenses by category
 and get monthly summaries.
 
-> 🚧 Work in progress. Done so far: project setup, users and JWT auth. Next: categories and expenses.
+> 🚧 Work in progress. Done so far: project setup, users and JWT auth, categories. Next: expenses.
 
 ## Tech stack
 
@@ -59,6 +59,8 @@ All endpoints live under `/api/v1/`. Send the access token as `Authorization: Be
 | POST | `/auth/token/` | Get access + refresh tokens | – |
 | POST | `/auth/token/refresh/` | Get a new access token | – |
 | GET / PATCH | `/auth/me/` | View or update your profile | ✅ |
+| GET / POST | `/categories/` | List or create your categories | ✅ |
+| GET / PATCH / DELETE | `/categories/{id}/` | View, rename or delete one of your categories | ✅ |
 
 Example:
 
@@ -83,10 +85,15 @@ apps/
   users/           custom User model, registration, JWT endpoints
     services.py    business logic (writes)
     tests/
+  expenses/        categories (and soon expenses), always scoped to the current user
 ```
 
 Views and serializers stay thin; business rules live in `services.py`, so they can be
 tested without HTTP.
+
+Every query for user data starts from `request.user` (e.g. `request.user.categories`), so a
+user can never read or change another user's data: those ids simply return `404`. Tests
+check this for every method.
 
 ## CI
 
