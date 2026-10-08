@@ -49,6 +49,8 @@ jobs:
       - name: Check for missing migrations
         run: uv run python manage.py makemigrations --check --dry-run
       - name: Check production settings
+        env:
+          ALLOWED_HOSTS: api.example.com
         run: uv run python manage.py check --deploy --settings=config.settings.prod --fail-level WARNING
       - name: Run tests
         run: uv run pytest --cov --cov-report=term-missing
