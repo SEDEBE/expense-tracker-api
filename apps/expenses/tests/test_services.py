@@ -3,7 +3,7 @@ from decimal import Decimal
 
 import pytest
 
-from apps.expenses.services import monthly_summary_send
+from apps.expenses.services import monthly_summaries_send, monthly_summary_send
 from apps.expenses.tests.factories import CategoryFactory, ExpenseFactory
 
 pytestmark = pytest.mark.django_db
@@ -34,3 +34,17 @@ def test_sends_nothing_for_a_month_without_expenses(user, mailoutbox):
 
     assert sent is False
     assert mailoutbox == []
+
+
+def test_monthly_summaries_send_emails_only_users_with_expenses(mailoutbox):
+    with_expenses = ExpenseFactory(date=date(2026, 10, 5)).user
+    ExpenseFactory(user=with_expenses, date=date(2026, 10, 6))  # second expense, still one email
+    ExpenseFactory(date=date(2026, 9, 30))  # another user, but not in October
+    inactive = ExpenseFactory(date=date(2026, 10, 5)).user
+    inactive.is_active = False
+    inactive.save()
+
+    sent = monthly_summaries_send(year=2026, month=10)
+
+    assert sent == 1
+    assert [email.to for email in mailoutbox] == [[with_expenses.email]]
