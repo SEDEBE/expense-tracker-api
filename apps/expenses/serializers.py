@@ -41,3 +41,24 @@ class ExpenseSerializer(serializers.ModelSerializer):
         model = Expense
         fields = ["id", "amount", "date", "description", "category", "created_at", "updated_at"]
         read_only_fields = ["id", "created_at", "updated_at"]
+
+
+class MonthQuerySerializer(serializers.Serializer):
+    month = serializers.DateField(
+        input_formats=["%Y-%m"],
+        required=False,
+        help_text="Month in YYYY-MM format. Defaults to the current month.",
+    )
+
+
+class CategoryTotalSerializer(serializers.Serializer):
+    category_id = serializers.IntegerField(allow_null=True)
+    category = serializers.CharField(allow_null=True)
+    total = serializers.DecimalField(max_digits=12, decimal_places=2)
+    count = serializers.IntegerField()
+
+
+class MonthlySummarySerializer(serializers.Serializer):
+    month = serializers.CharField()
+    total = serializers.DecimalField(max_digits=12, decimal_places=2)
+    by_category = CategoryTotalSerializer(many=True)

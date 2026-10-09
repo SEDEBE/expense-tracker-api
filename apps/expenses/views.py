@@ -1,8 +1,18 @@
+from django.utils import timezone
+from drf_spectacular.utils import extend_schema
 from rest_framework import filters, viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from .filters import ExpenseFilter
 from .models import Category, Expense
-from .serializers import CategorySerializer, ExpenseSerializer
+from .selectors import monthly_summary
+from .serializers import (
+    CategorySerializer,
+    ExpenseSerializer,
+    MonthlySummarySerializer,
+    MonthQuerySerializer,
+)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -31,3 +41,14 @@ class ExpenseViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    @extend_schema(parameters=[MonthQuerySerializer], responses=MonthlySummarySerializer)
+    @action(detail=False, methods=["get"], filter_backends=[], pagination_class=None)
+    def summary(self, request):
+        query = MonthQuerySerializer(data=request.query_params)
+        query.is_valid(raise_exception=True)
+        month = query.validated_data.get("month") or timezone.localdate()
+
+        summary = monthly_summary(request.user, month.year, month.month)
+        data = {"month": month.strftime("%Y-%m"), **summary}
+        return Response(MonthlySummarySerializer(data).data)
