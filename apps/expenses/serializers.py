@@ -1,6 +1,8 @@
+from decimal import Decimal
+
 from rest_framework import serializers
 
-from .models import Category
+from .models import Category, Expense
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -18,3 +20,24 @@ class CategorySerializer(serializers.ModelSerializer):
         if duplicates.exists():
             raise serializers.ValidationError("You already have a category with this name.")
         return value
+
+
+class UserCategoryField(serializers.PrimaryKeyRelatedField):
+    """Only accepts categories owned by the requesting user.
+
+    Another user's category id gets the same "does not exist" error as a missing one,
+    so the API never reveals which ids exist.
+    """
+
+    def get_queryset(self):
+        return self.context["request"].user.categories.all()
+
+
+class ExpenseSerializer(serializers.ModelSerializer):
+    category = UserCategoryField(allow_null=True, required=False)
+    amount = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=Decimal("0.01"))
+
+    class Meta:
+        model = Expense
+        fields = ["id", "amount", "date", "description", "category", "created_at", "updated_at"]
+        read_only_fields = ["id", "created_at", "updated_at"]
