@@ -7,7 +7,7 @@
 REST API to track personal expenses: register, log in with JWT, record expenses by category
 and get monthly summaries.
 
-> 🚧 Work in progress. Done so far: project setup, users and JWT auth, categories, expenses and monthly summaries.
+> 🚧 Work in progress. Done so far: project setup, users and JWT auth, categories, expenses, monthly summaries and summary emails. Next: scheduling them with Celery.
 
 ## Tech stack
 
@@ -97,6 +97,20 @@ curl -X POST localhost:8000/api/v1/auth/token/ \
   -H 'Content-Type: application/json' \
   -d '{"email": "ana@example.com", "password": "S3cure-pass!"}'
 ```
+## Monthly summary emails
+
+A management command emails every active user who had expenses in a month their summary:
+
+```bash
+uv run python manage.py send_monthly_summaries                 # previous month
+uv run python manage.py send_monthly_summaries --month 2026-09 # a specific month
+
+# With Docker
+docker compose exec api python manage.py send_monthly_summaries
+```
+
+In development, emails are printed to the console instead of being sent. Set
+`DEFAULT_FROM_EMAIL` to change the sender.
 
 ## Project structure
 
@@ -112,6 +126,8 @@ apps/
   expenses/        categories and expenses, always scoped to the current user
     filters.py     expense list filters (django-filter)
     selectors.py   read-only queries (monthly summary)
+    services.py    business logic (summary emails)
+    management/    send_monthly_summaries command
 ```
 
 Views and serializers stay thin: writes live in `services.py` and non-trivial reads in
