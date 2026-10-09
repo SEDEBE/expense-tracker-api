@@ -3,6 +3,7 @@ from decimal import Decimal
 
 import pytest
 from django.urls import reverse
+from django.utils import timezone
 
 from apps.expenses.models import Expense
 from apps.expenses.tests.factories import CategoryFactory, ExpenseFactory
@@ -164,3 +165,44 @@ class TestExpenseIsolation:
         response = auth_client.get(LIST_URL, {"category": others.category.pk})
 
         assert response.status_code == 400
+
+
+class TestExpenseSummary:
+    url = reverse("expenses:expense-summary")
+
+    def test_returns_month_totals(self, auth_client, user):
+        food = CategoryFactory(user=user, name="Food")
+        ExpenseFactory(user=user, category=food, date=date(2026, 10, 3), amount=Decimal("20.5"))
+        ExpenseFactory(user=user, category=None, date=date(2026, 10, 9), amount=Decimal("4.5"))
+
+        response = auth_client.get(self.url, {"month": "2026-10"})
+
+        assert response.status_code == 200
+        assert response.data == {
+            "month": "2026-10",
+            "total": "25.00",
+            "by_category": [
+                {"category_id": food.pk, "category": "Food", "total": "20.50", "count": 1},
+                {"category_id": None, "category": None, "total": "4.50", "count": 1},
+            ],
+        }
+
+    def test_defaults_to_current_month(self, auth_client, user):
+        today = timezone.localdate()
+        ExpenseFactory(user=user, date=today, amount=Decimal("7"))
+
+        response = auth_client.get(self.url)
+
+        assert response.status_code == 200
+        assert response.data["month"] == today.strftime("%Y-%m")
+        assert response.data["total"] == "7.00"
+
+    @pytest.mark.parametrize("month", ["2026-13", "october", "2026-10-01"])
+    def test_rejects_invalid_month(self, auth_client, month):
+        response = auth_client.get(self.url, {"month": month})
+
+        assert response.status_code == 400
+        assert "month" in response.data
+
+    def test_requires_authentication(self, api_client):
+        assert api_client.get(self.url).status_code == 401
