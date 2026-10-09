@@ -1,8 +1,9 @@
 from datetime import date
 
+from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 
-from .selectors import monthly_summary
+from .selectors import month_range, monthly_summary
 
 
 def monthly_summary_send(*, user, year: int, month: int) -> bool:
@@ -33,3 +34,14 @@ def monthly_summary_send(*, user, year: int, month: int) -> bool:
         recipient_list=[user.email],
     )
     return True
+
+
+def monthly_summaries_send(*, year: int, month: int) -> int:
+    """Email every active user who had expenses that month. Returns how many emails were sent."""
+    start, end = month_range(year, month)
+    users = (
+        get_user_model()
+        .objects.filter(is_active=True, expenses__date__gte=start, expenses__date__lt=end)
+        .distinct()
+    )
+    return sum(monthly_summary_send(user=user, year=year, month=month) for user in users)
