@@ -114,3 +114,5 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
 }
+
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="Expense Tracker <no-reply@localhost>")
