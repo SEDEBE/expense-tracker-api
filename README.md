@@ -7,7 +7,7 @@
 REST API to track personal expenses: register, log in with JWT, record expenses by category
 and get monthly summaries.
 
-> 🚧 Work in progress. Done so far: project setup, users and JWT auth, categories, expenses. Next: monthly summaries.
+> 🚧 Work in progress. Done so far: project setup, users and JWT auth, categories, expenses and monthly summaries.
 
 ## Tech stack
 
@@ -63,6 +63,7 @@ All endpoints live under `/api/v1/`. Send the access token as `Authorization: Be
 | GET / PATCH / DELETE | `/categories/{id}/` | View, rename or delete one of your categories | ✅ |
 | GET / POST | `/expenses/` | List (filtered, sorted, paginated) or create your expenses | ✅ |
 | GET / PATCH / DELETE | `/expenses/{id}/` | View, edit or delete one of your expenses | ✅ |
+| GET | `/expenses/summary/?month=YYYY-MM` | Monthly total and totals by category (defaults to the current month) | ✅ |
 
 Expense list filters: `date_from`, `date_to`, `amount_min`, `amount_max`, `category`,
 `uncategorized=true`, and `ordering` by `date`, `amount` or `created_at` (prefix `-` for
@@ -70,6 +71,20 @@ descending). Example: `/expenses/?date_from=2026-10-01&date_to=2026-10-31&orderi
 
 Deleting a category keeps its expenses; they become uncategorized. Amounts must be
 positive, which is enforced both by the API and by a database constraint.
+
+The monthly summary is computed in the database with two queries, whatever the number of
+expenses. Amounts are returned as strings to keep decimal precision:
+
+```json
+{
+  "month": "2026-10",
+  "total": "25.00",
+  "by_category": [
+    {"category_id": 3, "category": "Food", "total": "20.50", "count": 1},
+    {"category_id": null, "category": null, "total": "4.50", "count": 1}
+  ]
+}
+```
 
 Example:
 
@@ -96,10 +111,11 @@ apps/
     tests/
   expenses/        categories and expenses, always scoped to the current user
     filters.py     expense list filters (django-filter)
+    selectors.py   read-only queries (monthly summary)
 ```
 
-Views and serializers stay thin; business rules live in `services.py`, so they can be
-tested without HTTP.
+Views and serializers stay thin: writes live in `services.py` and non-trivial reads in
+`selectors.py`, so business logic can be tested without HTTP.
 
 Every query for user data starts from `request.user` (e.g. `request.user.categories`), so a
 user can never read or change another user's data: those ids simply return `404`. Tests
