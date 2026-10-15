@@ -3,6 +3,9 @@
 # ---- Build stage: resolve and install dependencies with uv ----
 FROM ghcr.io/astral-sh/uv:0.13-python3.14-trixie-slim AS builder
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PYTHON_DOWNLOADS=0
+# gettext provides msgfmt, which compilemessages needs. Only the builder has it.
+RUN apt-get update && apt-get install -y --no-install-recommends gettext \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 # Install deps first, in their own layer, so code changes don't invalidate the cache.
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -10,8 +13,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv sync --locked --no-dev --no-install-project
 COPY . .
-RUN SECRET_KEY=build-only DATABASE_URL=sqlite:////tmp/build.db \
-    .venv/bin/python manage.py collectstatic --noinput --settings=config.settings.prod
+RUN export SECRET_KEY=build-only DATABASE_URL=sqlite:////tmp/build.db \
+        DJANGO_SETTINGS_MODULE=config.settings.prod \
+    && .venv/bin/python manage.py compilemessages --ignore=.venv \
+    && .venv/bin/python manage.py collectstatic --noinput
 
 # ---- Runtime stage: only the venv and the code, no build tools ----
 FROM python:3.14-slim-trixie
