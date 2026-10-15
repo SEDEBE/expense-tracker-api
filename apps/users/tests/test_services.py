@@ -25,3 +25,14 @@ def test_user_create_rejects_duplicate_email():
 
     with pytest.raises(ValidationError):
         user_create(email="ana@example.com", password="S3cure-pass!")
+
+
+def test_user_create_defaults_to_english():
+    user = user_create(email="ana@example.com", password="S3cure-pass!")
+
+    assert user.language == "en"
+
+
+def test_user_create_rejects_unsupported_language():
+    with pytest.raises(ValidationError):
+        user_create(email="ana@example.com", password="S3cure-pass!", language="fr")

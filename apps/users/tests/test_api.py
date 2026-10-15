@@ -34,6 +34,30 @@ class TestRegister:
         assert response.status_code == 400
         assert "email" in response.data
 
+    def test_language_defaults_to_accept_language(self, api_client):
+        payload = {"email": "ana@example.com", "password": "S3cure-pass!"}
+
+        response = api_client.post(REGISTER_URL, payload, HTTP_ACCEPT_LANGUAGE="es")
+
+        assert response.status_code == 201
+        assert response.data["language"] == "es"
+
+    def test_explicit_language_wins_over_accept_language(self, api_client):
+        payload = {"email": "ana@example.com", "password": "S3cure-pass!", "language": "en"}
+
+        response = api_client.post(REGISTER_URL, payload, HTTP_ACCEPT_LANGUAGE="es")
+
+        assert response.status_code == 201
+        assert response.data["language"] == "en"
+
+    def test_rejects_unsupported_language(self, api_client):
+        payload = {"email": "ana@example.com", "password": "S3cure-pass!", "language": "fr"}
+
+        response = api_client.post(REGISTER_URL, payload)
+
+        assert response.status_code == 400
+        assert "language" in response.data
+
 
 class TestJwtFlow:
     def test_login_refresh_and_access_protected_endpoint(self, api_client, user):
@@ -67,3 +91,10 @@ class TestMe:
         user.refresh_from_db()
         assert user.first_name == "New"
         assert user.email != "hacker@example.com"
+
+    def test_updates_language(self, auth_client, user):
+        response = auth_client.patch(ME_URL, {"language": "es"}, format="json")
+
+        assert response.status_code == 200
+        user.refresh_from_db()
+        assert user.language == "es"

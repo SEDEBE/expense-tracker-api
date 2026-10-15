@@ -1,0 +1,67 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-15 11:37+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? "
+"1 : 2;\n"
+
+#: apps/expenses/serializers.py:22
+msgid "You already have a category with this name."
+msgstr "Ya tienes una categoría con este nombre."
+
+#: apps/expenses/services.py:23
+msgid "Hi,"
+msgstr "Hola,"
+
+#: apps/expenses/services.py:25
+#, python-format
+msgid "Here is your expense summary for %(month)s."
+msgstr "Este es el resumen de tus gastos de %(month)s."
+
+#: apps/expenses/services.py:27
+#, python-format
+msgid "Total: %(total)s"
+msgstr "Total: %(total)s"
+
+#: apps/expenses/services.py:29
+msgid "By category:"
+msgstr "Por categoría:"
+
+#: apps/expenses/services.py:32
+msgid "Uncategorized"
+msgstr "Sin categoría"
+
+#: apps/expenses/services.py:35
+#, python-format
+msgid "%(count)d expense"
+msgid_plural "%(count)d expenses"
+msgstr[0] "%(count)d gasto"
+msgstr[1] "%(count)d gastos"
+msgstr[2] "%(count)d gastos"
+
+#: apps/expenses/services.py:37
+#, python-format
+msgid "Your expense summary for %(month)s"
+msgstr "Resumen de tus gastos de %(month)s"
+
+#: config/settings/base.py:80
+msgid "English"
+msgstr "Inglés"
+
+#: config/settings/base.py:81
+msgid "Spanish"
+msgstr "Español"

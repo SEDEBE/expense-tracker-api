@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from .models import Category, Expense
@@ -18,7 +19,7 @@ class CategorySerializer(serializers.ModelSerializer):
         if self.instance is not None:
             duplicates = duplicates.exclude(pk=self.instance.pk)
         if duplicates.exists():
-            raise serializers.ValidationError("You already have a category with this name.")
+            raise serializers.ValidationError(_("You already have a category with this name."))
         return value
 
 

@@ -2,6 +2,10 @@ from datetime import date
 
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
+from django.utils import translation
+from django.utils.formats import date_format, number_format
+from django.utils.translation import gettext as _
+from django.utils.translation import ngettext
 
 from .selectors import month_range, monthly_summary
 
@@ -12,23 +16,28 @@ def monthly_summary_send(*, user, year: int, month: int) -> bool:
     if not summary["by_category"]:
         return False
 
-    month_name = date(year, month, 1).strftime("%B %Y")
-    lines = [
-        "Hi,",
-        "",
-        f"Here is your expense summary for {month_name}.",
-        "",
-        f"Total: {summary['total']:.2f}",
-        "",
-        "By category:",
-    ]
-    for row in summary["by_category"]:
-        name = row["category"] or "Uncategorized"
-        expenses = "expense" if row["count"] == 1 else "expenses"
-        lines.append(f"- {name}: {row['total']:.2f} ({row['count']} {expenses})")
+    # Texts, month names and number formats follow the user's language, not the active one.
+    with translation.override(user.language):
+        month_name = date_format(date(year, month, 1), "YEAR_MONTH_FORMAT")
+        lines = [
+            _("Hi,"),
+            "",
+            _("Here is your expense summary for %(month)s.") % {"month": month_name},
+            "",
+            _("Total: %(total)s") % {"total": number_format(summary["total"], 2)},
+            "",
+            _("By category:"),
+        ]
+        for row in summary["by_category"]:
+            name = row["category"] or _("Uncategorized")
+            total = number_format(row["total"], 2)
+            count = row["count"]
+            expenses = ngettext("%(count)d expense", "%(count)d expenses", count) % {"count": count}
+            lines.append(f"- {name}: {total} ({expenses})")
+        subject = _("Your expense summary for %(month)s") % {"month": month_name}
 
     send_mail(
-        subject=f"Your expense summary for {month_name}",
+        subject=subject,
         message="\n".join(lines),
         from_email=None,
         recipient_list=[user.email],

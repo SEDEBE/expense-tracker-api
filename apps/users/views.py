@@ -17,7 +17,9 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         try:
-            user = user_create(**serializer.validated_data)
+            # Without an explicit choice, keep the language negotiated from Accept-Language.
+            data = {"language": request.LANGUAGE_CODE, **serializer.validated_data}
+            user = user_create(**data)
         except DjangoValidationError as exc:
             # Model and password validators raise Django errors; expose them as a normal 400.
             detail = exc.message_dict if hasattr(exc, "error_dict") else {"password": exc.messages}
