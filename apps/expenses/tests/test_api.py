@@ -39,6 +39,16 @@ class TestCategoryCrud:
         assert response.status_code == 400
         assert "name" in response.data
 
+    def test_duplicate_name_error_is_translated(self, auth_client, user):
+        CategoryFactory(user=user, name="Food")
+
+        response = auth_client.post(
+            LIST_URL, {"name": "Food"}, format="json", HTTP_ACCEPT_LANGUAGE="es"
+        )
+
+        assert response.status_code == 400
+        assert response.data["name"] == ["Ya tienes una categoría con este nombre."]
+
     def test_rename_only_changing_case_is_allowed(self, auth_client, user):
         category = CategoryFactory(user=user, name="Food")
 
