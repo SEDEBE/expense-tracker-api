@@ -7,7 +7,7 @@
 REST API to track personal expenses: register, log in with JWT, record expenses by category
 and get monthly summaries.
 
-> 🚧 Work in progress. Done so far: project setup, users and JWT auth, categories, expenses, monthly summaries and summary emails. Next: scheduling them with Celery.
+> 🚧 Work in progress. Done so far: project setup, users and JWT auth, categories, expenses, monthly summaries, summary emails and English/Spanish support. Next: scheduling the emails with Celery.
 
 ## Tech stack
 
@@ -17,6 +17,7 @@ and get monthly summaries.
 | Auth | JWT (`djangorestframework-simplejwt`), email-based custom user |
 | Database | PostgreSQL 18 |
 | API docs | OpenAPI 3 with `drf-spectacular` (Swagger UI) |
+| i18n | Django gettext: English and Spanish, negotiated with `Accept-Language` |
 | Quality | pytest + pytest-django, factory_boy, coverage, Ruff |
 | DevOps | Docker (multi-stage, non-root), Docker Compose, GitHub Actions, Dependabot |
 | Tooling | [uv](https://docs.astral.sh/uv/) for dependencies and virtualenv |
@@ -38,7 +39,8 @@ docker compose up --build
 
 ## Local development
 
-Requires [uv](https://docs.astral.sh/uv/getting-started/installation/) and Docker (for Postgres).
+Requires [uv](https://docs.astral.sh/uv/getting-started/installation/), Docker (for Postgres) and
+GNU gettext to compile translations (`sudo apt install gettext` on Debian/Ubuntu).
 
 ```bash
 cp .env.example .env
@@ -97,6 +99,26 @@ curl -X POST localhost:8000/api/v1/auth/token/ \
   -H 'Content-Type: application/json' \
   -d '{"email": "ana@example.com", "password": "S3cure-pass!"}'
 ```
+
+## Languages
+
+The API and the emails are available in English (default) and Spanish.
+
+- **API responses** follow the `Accept-Language` header (e.g. `Accept-Language: es`): error
+  messages, both Django's and the project's own, come back translated, and the response
+  says which language it used in `Content-Language`.
+- **Emails** use each user's `language` (`en` or `es`), since they are sent outside any
+  request. It defaults to the language negotiated at registration and can be changed with
+  `PATCH /auth/me/`. Month names and numbers are localized too (`octubre de 2026`, `25,00`).
+
+Translations live in `locale/es/LC_MESSAGES/django.po`. Only the `.po` file is committed;
+the `.mo` file Django reads is compiled by `make dev`/`make test`, CI and the Docker build.
+
+```bash
+make messages          # extract new translatable strings into the .po file
+make compilemessages   # compile the .po file
+```
+
 ## Monthly summary emails
 
 A management command emails every active user who had expenses in a month their summary:
@@ -128,6 +150,7 @@ apps/
     selectors.py   read-only queries (monthly summary)
     services.py    business logic (summary emails)
     management/    send_monthly_summaries command
+locale/            Spanish translations (.po)
 ```
 
 Views and serializers stay thin: writes live in `services.py` and non-trivial reads in
@@ -142,6 +165,7 @@ check this for every method.
 Every pull request and push to `main` runs:
 
 1. **Lint**: Ruff (style and common bugs).
-2. **Test**: pending-migrations check, `check --deploy` against production settings, and the
-   test suite with coverage against a real PostgreSQL service.
+2. **Test**: compiles translations, checks for pending migrations, runs `check --deploy`
+   against production settings, and runs the test suite with coverage against a real
+   PostgreSQL service.
 3. **Docker**: builds the production image.
