@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # ---- Build stage: resolve and install dependencies with uv ----
-FROM ghcr.io/astral-sh/uv:0.12-python3.14-trixie-slim AS builder
+FROM ghcr.io/astral-sh/uv:0.13-python3.14-trixie-slim AS builder
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PYTHON_DOWNLOADS=0
 WORKDIR /app
 # Install deps first, in their own layer, so code changes don't invalidate the cache.
