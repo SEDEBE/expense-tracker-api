@@ -79,7 +79,9 @@ Expense list filters: `date_from`, `date_to`, `amount_min`, `amount_max`, `categ
 descending). Example: `/expenses/?date_from=2026-10-01&date_to=2026-10-31&ordering=-amount`.
 
 Deleting a category keeps its expenses; they become uncategorized. Amounts must be
-positive, which is enforced both by the API and by a database constraint.
+positive, which is enforced both by the API and by a database constraint. An expense's
+category must belong to the same user, which is checked by the API and by model validation
+(so the admin enforces it too).
 
 The monthly summary is computed in the database with two queries, whatever the number of
 expenses. Amounts are returned as strings to keep decimal precision:
