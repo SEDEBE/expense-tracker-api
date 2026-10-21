@@ -6,6 +6,7 @@ from django.utils import timezone
 from apps.expenses.selectors import previous_month
 from apps.expenses.tasks import send_monthly_summaries
 from apps.expenses.tests.factories import ExpenseFactory
+from config.celery import app
 
 pytestmark = pytest.mark.django_db
 
@@ -37,3 +38,16 @@ def test_runs_through_celery(mailoutbox):
     result = send_monthly_summaries.apply(kwargs={"year": 2026, "month": 9})
 
     assert result.get() == 1
+
+
+def test_monthly_summaries_are_scheduled_on_the_first_of_each_month():
+    entry = app.conf.beat_schedule["send-monthly-summaries"]
+
+    assert entry["task"] == send_monthly_summaries.name
+    assert entry["schedule"].day_of_month == {1}
+    assert entry["schedule"].hour == {7}
+    assert entry["schedule"].minute == {0}
+
+
+def test_celery_uses_the_django_time_zone():
+    assert app.conf.timezone == "UTC"
