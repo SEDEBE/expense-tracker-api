@@ -122,4 +122,6 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
 }
 
+# EMAIL_URL picks where emails go: consolemail:// prints them, smtp://host:port sends them.
+vars().update(env.email_url("EMAIL_URL", default="consolemail://"))
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="Expense Tracker <no-reply@localhost>")
