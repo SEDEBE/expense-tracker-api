@@ -24,11 +24,21 @@ services:
       # No TLS terminator in front locally, so don't force HTTPS.
       SECURE_SSL_REDIRECT: "False"
       SECURE_HSTS_SECONDS: "0"
+      # Send emails to Mailpit test inbox instead of the real world
+      EMAIL_URL: smtp://mailpit:1025
     ports:
       - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
+      mailpit:
+        condition: service_healthy
+
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports:
+      - "8025:8025" # web inbox
+      - "1025:1025" # SMTP
 
 volumes:
   pgdata:
