@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 import pytest
+from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 
 from apps.expenses.tests.factories import CategoryFactory, ExpenseFactory
@@ -33,3 +34,21 @@ def test_deleting_category_keeps_its_expenses():
 
     expense.refresh_from_db()
     assert expense.category is None
+
+
+def test_expense_category_must_belong_to_the_same_user():
+    expense = ExpenseFactory()
+    expense.category = CategoryFactory()  # owned by another user
+
+    with pytest.raises(ValidationError) as exc_info:
+        expense.full_clean()
+
+    assert "category" in exc_info.value.message_dict
+
+
+def test_expense_with_own_category_or_no_category_is_valid():
+    expense = ExpenseFactory()
+    expense.full_clean()
+
+    expense.category = None
+    expense.full_clean()

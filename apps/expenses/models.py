@@ -1,6 +1,8 @@
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.functions import Lower
+from django.utils.translation import gettext as _
 
 
 class Category(models.Model):
@@ -61,3 +63,11 @@ class Expense(models.Model):
 
     def __str__(self):
         return f"{self.date} {self.amount} {self.description}".strip()
+
+    def clean(self):
+        super().clean()
+        # The API already rejects other users' categories; this covers the admin and ModelForms.
+        if self.category_id and self.user_id and self.category.user_id != self.user_id:
+            raise ValidationError(
+                {"category": _("The category must belong to the same user as the expense.")}
+            )
