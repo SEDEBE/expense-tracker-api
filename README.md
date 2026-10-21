@@ -7,7 +7,7 @@
 REST API to track personal expenses: register, log in with JWT, record expenses by category
 and get monthly summaries.
 
-> 🚧 Work in progress. Done so far: project setup, users and JWT auth, categories, expenses, monthly summaries, summary emails and English/Spanish support. Next: scheduling the emails with Celery.
+> 🚧 Work in progress. Done so far: project setup, users and JWT auth, categories, expenses, monthly summaries, summary emails and English/Spanish support, and monthly emails scheduled with Celery. Next: a live deployment and a frontend.
 
 ## Tech stack
 
@@ -16,6 +16,7 @@ and get monthly summaries.
 | Backend | Python 3.14, Django 5.2 LTS, Django REST Framework |
 | Auth | JWT (`djangorestframework-simplejwt`), email-based custom user |
 | Database | PostgreSQL 18 |
+| Background jobs | Celery 5.6 (worker + beat) with Redis 8 as the broker, Mailpit as a local test inbox |
 | API docs | OpenAPI 3 with `drf-spectacular` (Swagger UI) |
 | i18n | Django gettext: English and Spanish, negotiated with `Accept-Language` |
 | Quality | pytest + pytest-django, factory_boy, coverage, Ruff |
@@ -36,17 +37,23 @@ docker compose up --build
 - API docs (Swagger UI): http://localhost:8000/api/docs/
 - Health check: http://localhost:8000/api/health/
 - Admin: http://localhost:8000/admin/ (create a user with `docker compose exec api python manage.py createsuperuser`)
+- Test inbox (Mailpit): http://localhost:8025 (every email the app sends lands here)
+
+`docker compose up` starts the API, a Celery worker, Celery beat, PostgreSQL, Redis and Mailpit.
 
 ## Local development
 
-Requires [uv](https://docs.astral.sh/uv/getting-started/installation/), Docker (for Postgres) and
-GNU gettext to compile translations (`sudo apt install gettext` on Debian/Ubuntu).
+Requires [uv](https://docs.astral.sh/uv/getting-started/installation/), Docker (for Postgres,
+Redis and Mailpit) and GNU gettext to compile translations (`sudo apt install gettext` on
+Debian/Ubuntu).
 
 ```bash
 cp .env.example .env
 make install   # create .venv, install dependencies and git hooks (pre-commit)
-make db        # start Postgres in Docker
+make db        # start Postgres, Redis and Mailpit in Docker
 make dev       # migrate and run the dev server on :8000
+make worker    # run a Celery worker (in another terminal)
+make beat      # run Celery beat, the scheduler (in another terminal)
 make test      # run tests with coverage
 make lint      # ruff check + format check
 ```
@@ -121,7 +128,23 @@ make compilemessages   # compile the .po file
 
 ## Monthly summary emails
 
-A management command emails every active user who had expenses in a month their summary:
+On the first day of each month at 07:00 UTC, every active user who had expenses in the
+previous month gets an email with their summary, in their own language.
+
+```mermaid
+flowchart LR
+    beat[Celery beat] -- "1st of month, 07:00 UTC" --> redis[(Redis)]
+    redis --> worker[Celery worker]
+    worker --> db[(PostgreSQL)]
+    worker -- SMTP --> mail[Mailpit / SMTP server]
+```
+
+- **beat** only decides *when*: it puts a message on Redis. Run exactly one.
+- **worker** does the work: it reads the message, queries PostgreSQL and sends the emails.
+- With Docker Compose, emails go to **Mailpit** (http://localhost:8025), so nothing reaches
+  real inboxes.
+
+The same logic can be run by hand:
 
 ```bash
 uv run python manage.py send_monthly_summaries                 # previous month
@@ -131,7 +154,8 @@ uv run python manage.py send_monthly_summaries --month 2026-09 # a specific mont
 docker compose exec api python manage.py send_monthly_summaries
 ```
 
-In development, emails are printed to the console instead of being sent. Set
+`EMAIL_URL` chooses where emails go: `consolemail://` (the default) prints them to the
+console, and `smtp+tls://user:password@host:587` sends them through an SMTP server. Set
 `DEFAULT_FROM_EMAIL` to change the sender.
 
 ## Project structure
@@ -140,6 +164,7 @@ In development, emails are printed to the console instead of being sent. Set
 config/
   settings/        base.py (shared), dev.py, test.py, prod.py
   urls.py          API v1 routes, OpenAPI schema and docs
+  celery.py        Celery app (reads CELERY_* settings, finds every app's tasks.py)
 apps/
   core/            cross-cutting pieces (health check)
   users/           custom User model, registration, JWT endpoints
@@ -147,8 +172,9 @@ apps/
     tests/
   expenses/        categories and expenses, always scoped to the current user
     filters.py     expense list filters (django-filter)
-    selectors.py   read-only queries (monthly summary)
+    selectors.py   read-only queries (monthly summary) and month helpers
     services.py    business logic (summary emails)
+    tasks.py       Celery task that sends the monthly summaries
     management/    send_monthly_summaries command
 locale/            Spanish translations (.po)
 ```
