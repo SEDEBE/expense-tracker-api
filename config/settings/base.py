@@ -125,3 +125,7 @@ SPECTACULAR_SETTINGS = {
 # EMAIL_URL picks where emails go: consolemail:// prints them, smtp://host:port sends them.
 vars().update(env.email_url("EMAIL_URL", default="consolemail://"))
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="Expense Tracker <no-reply@localhost>")
+
+# Celery: Redis carries task messages from the API and beat to the workers.
+CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://localhost:6379/0")
+CELERY_TIMEZONE = TIME_ZONE
