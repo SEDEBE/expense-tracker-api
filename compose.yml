@@ -1,3 +1,24 @@
+# Settings shared by every service that runs the Django image (api, worker, beat).
+x-app: &app
+  build: .
+  env_file: .env
+  environment:
+    # Inside the compose network each host is the service name, not localhost.
+    DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    CELERY_BROKER_URL: redis://redis:6379/0
+    # Send emails to the Mailpit test inbox instead of the real world.
+    EMAIL_URL: smtp://mailpit:1025
+    # No TLS terminator in front locally, so don't force HTTPS.
+    SECURE_SSL_REDIRECT: "False"
+    SECURE_HSTS_SECONDS: "0"
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+    mailpit:
+      condition: service_healthy
+
 services:
   db:
     image: postgres:18-alpine
@@ -15,20 +36,44 @@ services:
       timeout: 3s
       retries: 10
 
+  redis:
+    image: redis:8-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports:
+      - "8025:8025" # web inbox
+      - "1025:1025" # SMTP
+
   api:
-    build: .
-    env_file: .env
-    environment:
-      # Inside the compose network the database host is the service name, not localhost.
-      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
-      # No TLS terminator in front locally, so don't force HTTPS.
-      SECURE_SSL_REDIRECT: "False"
-      SECURE_HSTS_SECONDS: "0"
+    <<: *app
     ports:
       - "8000:8000"
-    depends_on:
-      db:
-        condition: service_healthy
+
+  worker:
+    <<: *app
+    command: celery -A config worker --loglevel info --concurrency 2
+    healthcheck:
+      # The image's healthcheck calls the API over HTTP; a worker answers pings through Redis instead.
+      test: ["CMD-SHELL", "celery -A config inspect ping --destination celery@$$HOSTNAME"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 3
+
+  beat:
+    <<: *app
+    # Run exactly one beat: two would schedule every task twice.
+    command: celery -A config beat --loglevel info --schedule /tmp/celerybeat-schedule
+    healthcheck:
+      disable: true
 
 volumes:
   pgdata:

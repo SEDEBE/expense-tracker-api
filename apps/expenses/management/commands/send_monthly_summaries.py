@@ -1,9 +1,10 @@
 import argparse
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
+from apps.expenses.selectors import previous_month
 from apps.expenses.services import monthly_summaries_send
 
 
@@ -12,11 +13,6 @@ def parse_month(value: str) -> date:
         return datetime.strptime(value, "%Y-%m").date()
     except ValueError:
         raise argparse.ArgumentTypeError("use the YYYY-MM format, e.g. 2026-09") from None
-
-
-def previous_month(today: date) -> date:
-    """First day of the month before `today`."""
-    return (today.replace(day=1) - timedelta(days=1)).replace(day=1)
 
 
 class Command(BaseCommand):

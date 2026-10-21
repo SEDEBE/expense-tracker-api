@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 
 from django.db.models import Count, Sum
@@ -9,6 +9,11 @@ def month_range(year, month):
     start = date(year, month, 1)
     end = date(year + 1, 1, 1) if month == 12 else date(year, month + 1, 1)
     return start, end
+
+
+def previous_month(today: date) -> date:
+    """First day of the month before `today`."""
+    return (today.replace(day=1) - timedelta(days=1)).replace(day=1)
 
 
 def monthly_summary(user, year, month):

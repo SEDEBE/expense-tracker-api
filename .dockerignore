@@ -10,3 +10,4 @@ htmlcov
 staticfiles
 db.sqlite3
 *.mo
+celerybeat-schedule*

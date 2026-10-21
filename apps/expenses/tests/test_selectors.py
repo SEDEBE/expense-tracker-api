@@ -3,7 +3,7 @@ from decimal import Decimal
 
 import pytest
 
-from apps.expenses.selectors import monthly_summary
+from apps.expenses.selectors import monthly_summary, previous_month
 from apps.expenses.tests.factories import CategoryFactory, ExpenseFactory
 
 pytestmark = pytest.mark.django_db
@@ -55,3 +55,16 @@ def test_uses_a_fixed_number_of_queries(user, django_assert_num_queries):
 
     with django_assert_num_queries(2):
         monthly_summary(user, 2026, 10)
+
+
+@pytest.mark.parametrize(
+    ("today", "expected"),
+    [
+        (date(2026, 10, 1), date(2026, 9, 1)),
+        (date(2026, 10, 31), date(2026, 9, 1)),
+        (date(2026, 1, 15), date(2025, 12, 1)),
+        (date(2024, 3, 31), date(2024, 2, 1)),
+    ],
+)
+def test_previous_month(today, expected):
+    assert previous_month(today) == expected

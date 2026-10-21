@@ -4,6 +4,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import environ
+from celery.schedules import crontab
 from django.utils.translation import gettext_lazy as _
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -122,4 +123,18 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
 }
 
+# EMAIL_URL picks where emails go: consolemail:// prints them, smtp://host:port sends them.
+vars().update(env.email_url("EMAIL_URL", default="consolemail://"))
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="Expense Tracker <no-reply@localhost>")
+
+# Celery: Redis carries task messages from the API and beat to the workers.
+CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://localhost:6379/0")
+CELERY_TIMEZONE = TIME_ZONE
+
+CELERY_BEAT_SCHEDULE = {
+    # Times are in CELERY_TIMEZONE (UTC): 07:00 UTC is 08:00-09:00 in Spain.
+    "send-monthly-summaries": {
+        "task": "apps.expenses.tasks.send_monthly_summaries",
+        "schedule": crontab(minute=0, hour=7, day_of_month=1),
+    },
+}
