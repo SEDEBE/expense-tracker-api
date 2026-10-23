@@ -4,8 +4,9 @@
 ![Python](https://img.shields.io/badge/python-3.14-blue)
 ![Django](https://img.shields.io/badge/django-5.2_LTS-green)
 
-REST API to track personal expenses: register, log in with JWT, record expenses by category
-and get monthly summaries.
+REST API to track personal expenses: register, log in with JWT or Google, record expenses by
+category, set monthly budgets with email alerts, save recurring expenses that a daily task creates
+on their own, export to CSV and get monthly summaries by email.
 
 It is the backend of a full-stack project:
 
