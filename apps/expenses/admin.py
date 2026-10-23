@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import BudgetAlert, Category, Expense
+from .models import BudgetAlert, Category, Expense, RecurringExpense
 
 
 @admin.register(Category)
@@ -23,3 +23,11 @@ class ExpenseAdmin(admin.ModelAdmin):
 class BudgetAlertAdmin(admin.ModelAdmin):
     list_display = ["category", "month", "threshold", "created_at"]
     list_select_related = ["category"]
+
+
+@admin.register(RecurringExpense)
+class RecurringExpenseAdmin(admin.ModelAdmin):
+    list_display = ["description", "amount", "day_of_month", "active", "next_date", "user"]
+    list_filter = ["active"]
+    search_fields = ["description", "user__email"]
+    list_select_related = ["user"]

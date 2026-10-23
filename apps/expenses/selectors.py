@@ -17,6 +17,12 @@ def previous_month(today: date) -> date:
     return (today.replace(day=1) - timedelta(days=1)).replace(day=1)
 
 
+def occurrence(year: int, month: int, day_of_month: int) -> date:
+    """The given day of a month, or its last day when the month is shorter (31 -> 30 Nov)."""
+    start, end = month_range(year, month)
+    return start.replace(day=min(day_of_month, (end - start).days))
+
+
 def add_months(day: date, months: int) -> date:
     """First day of the month `months` months after (or before, if negative) `day`'s month."""
     index = day.year * 12 + day.month - 1 + months

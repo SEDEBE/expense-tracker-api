@@ -81,6 +81,8 @@ All endpoints live under `/api/v1/`. Send the access token as `Authorization: Be
 | GET / PATCH / DELETE | `/expenses/{id}/` | View, edit or delete one of your expenses | ✅ |
 | GET | `/expenses/summary/?month=YYYY-MM` | Monthly total and totals by category (defaults to the current month) | ✅ |
 | GET | `/expenses/history/?months=6` | Total of each of the last N months (1–24), oldest first, empty months as zero | ✅ |
+| GET, POST | `/recurring/` | List or create recurring expenses (amount, description, category, `day_of_month` 1–31) | ✅ |
+| GET, PATCH, DELETE | `/recurring/{id}/` | One recurring expense; `active: false` pauses it | ✅ |
 | GET | `/expenses/export/` | Expenses as CSV, with the list's filters and ordering (`;` and decimal commas in Spanish, for Excel) | ✅ |
 | POST | `/expenses/summary/email/` | Email me the summary of `{"month": "YYYY-MM"}` now (current month by default; 5 per hour, not for demo accounts) | ✅ |
 
@@ -194,6 +196,14 @@ saved, a Celery task checks its category: when this month's spending reaches 80%
 the budget, the user gets an email. Each threshold is sent once per category and month
 (`BudgetAlert` records what was sent), and a jump past both sends only the 100% one. The task runs
 after the database commit, so the API answers without waiting for it.
+
+## Recurring expenses
+
+Rent, subscriptions and other fixed costs are saved once as recurring expenses. Every day at
+05:30 UTC a Celery beat task creates the real expense of each one that is due and moves its
+`next_date` to the next month. Day 31 falls on the last day of shorter months, a missed run is
+caught up with the right dates, running twice never duplicates (each row is locked while it is
+processed), and new expenses go through the budget check like any other.
 
 ## Monthly summary emails
 

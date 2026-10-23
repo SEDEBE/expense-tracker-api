@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.functions import Lower
 from django.utils.translation import gettext as _
@@ -101,3 +102,49 @@ class BudgetAlert(models.Model):
 
     def __str__(self):
         return f"{self.category} {self.month:%Y-%m} {self.threshold}%"
+
+
+class RecurringExpense(models.Model):
+    """An expense that repeats every month on the same day, such as rent or a subscription.
+
+    A daily task creates the real Expense on `next_date` and moves it to the next month.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="recurring_expenses",
+    )
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="recurring_expenses",
+    )
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    description = models.CharField(max_length=255)
+    day_of_month = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(31)],
+        help_text="In shorter months, days past the end fall on the last day",
+    )
+    active = models.BooleanField(default=True)
+    next_date = models.DateField(help_text="Day the next expense will be created")
+    last_date = models.DateField(null=True, blank=True, help_text="Day of the last expense created")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["day_of_month", "description"]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(amount__gt=0), name="recurring_amount_positive"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(day_of_month__gte=1, day_of_month__lte=31),
+                name="recurring_day_of_month_valid",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.description} ({self.amount}, day {self.day_of_month})"

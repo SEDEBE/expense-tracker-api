@@ -49,5 +49,13 @@ def test_monthly_summaries_are_scheduled_on_the_first_of_each_month():
     assert entry["schedule"].minute == {0}
 
 
+def test_recurring_expenses_are_created_every_day():
+    entry = app.conf.beat_schedule["create-recurring-expenses"]
+
+    assert entry["task"] == "apps.expenses.tasks.create_recurring_expenses"
+    assert entry["schedule"].hour == {5}
+    assert entry["schedule"].minute == {30}
+
+
 def test_celery_uses_the_django_time_zone():
     assert app.conf.timezone == "UTC"

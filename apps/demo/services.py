@@ -7,8 +7,9 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
-from apps.expenses.models import Category, Expense
-from apps.expenses.selectors import add_months, month_range
+from apps.expenses.models import Category, Expense, RecurringExpense
+from apps.expenses.selectors import add_months, month_range, occurrence
+from apps.expenses.services import recurring_next_date
 from apps.users.models import User
 
 from .data import BUDGETS, CATEGORIES, MONTHLY, OCCASIONAL
@@ -42,7 +43,30 @@ def demo_user_create(*, today: date | None = None, rng: random.Random | None = N
     }
     Category.objects.bulk_create(categories.values())
     Expense.objects.bulk_create(_sample_expenses(user, categories, today, rng))
+    RecurringExpense.objects.bulk_create(_recurring_expenses(user, categories, today))
     return user
+
+
+def _recurring_expenses(user, categories, today):
+    """The monthly expenses with a fixed amount become recurring ones, already up to date."""
+    recurring = []
+    for category, description, day, low, high in MONTHLY:
+        if low != high:
+            continue  # the electricity bill changes every month: not a fixed expense
+        # The sample data already has this month's expense when its day has passed.
+        last = occurrence(today.year, today.month, day) if day <= today.day else None
+        recurring.append(
+            RecurringExpense(
+                user=user,
+                category=categories[category],
+                amount=low,
+                description=description,
+                day_of_month=day,
+                last_date=last,
+                next_date=recurring_next_date(day_of_month=day, today=today, last_date=last),
+            )
+        )
+    return recurring
 
 
 def _sample_expenses(user, categories, today, rng):

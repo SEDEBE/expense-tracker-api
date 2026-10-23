@@ -4,6 +4,7 @@ from datetime import date
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from django.db.models import Sum
 from django.utils import timezone, translation
 from django.utils.formats import date_format, get_format, number_format
@@ -12,8 +13,8 @@ from django.utils.translation import ngettext
 
 from apps.core.emails import email_send
 
-from .models import BudgetAlert
-from .selectors import month_range, monthly_summary
+from .models import BudgetAlert, Expense, RecurringExpense
+from .selectors import add_months, month_range, monthly_summary, occurrence
 
 
 def _money(value) -> str:
@@ -188,3 +189,53 @@ def _budget_alert_email_send(*, user, category, spent, threshold) -> None:
                 "button_label": _("Open it in the app"),
             },
         )
+
+
+def recurring_next_date(*, day_of_month: int, today: date, last_date: date | None = None) -> date:
+    """The first day on or after today when a recurring expense should be created.
+
+    If an expense was already created this month (`last_date`), the next one is next month's,
+    so changing the day or resuming a paused one never charges the same month twice.
+    """
+    candidate = occurrence(today.year, today.month, day_of_month)
+    already_this_month = last_date is not None and last_date >= today.replace(day=1)
+    if candidate < today or already_this_month:
+        following = add_months(today, 1)
+        candidate = occurrence(following.year, following.month, day_of_month)
+    return candidate
+
+
+def recurring_expenses_create(*, today: date | None = None) -> list[Expense]:
+    """Create the expenses of every active recurring expense that is due. Safe to run twice.
+
+    A due date that was missed (the task did not run that day) is still created, with its own
+    date, so nothing is lost.
+    """
+    from .tasks import check_budget_alert  # tasks.py imports this module
+
+    today = today or timezone.localdate()
+    created = []
+    due = RecurringExpense.objects.filter(active=True, next_date__lte=today).select_related("user")
+    for recurring in due:
+        with transaction.atomic():
+            recurring = RecurringExpense.objects.select_for_update().get(pk=recurring.pk)
+            while recurring.active and recurring.next_date <= today:
+                created.append(
+                    Expense.objects.create(
+                        user=recurring.user,
+                        category=recurring.category,
+                        amount=recurring.amount,
+                        description=recurring.description,
+                        date=recurring.next_date,
+                    )
+                )
+                recurring.last_date = recurring.next_date
+                following = add_months(recurring.next_date, 1)
+                recurring.next_date = occurrence(
+                    following.year, following.month, recurring.day_of_month
+                )
+            recurring.save(update_fields=["last_date", "next_date", "updated_at"])
+
+    for expense in created:
+        transaction.on_commit(lambda pk=expense.pk: check_budget_alert.delay(pk))
+    return created

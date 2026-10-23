@@ -8,6 +8,7 @@ from apps.demo.data import CATEGORIES
 from apps.demo.services import DEMO_MONTHS, demo_user_create, demo_users_delete_expired
 from apps.expenses.models import Category, Expense
 from apps.expenses.selectors import add_months
+from apps.expenses.services import recurring_expenses_create
 from apps.users.models import User
 from apps.users.tests.factories import UserFactory
 
@@ -56,6 +57,27 @@ def test_includes_the_monthly_rent():
     rent = user.expenses.filter(description="Alquiler")
     assert rent.count() == DEMO_MONTHS
     assert {expense.date.day for expense in rent} == {1}
+
+
+def test_has_budgets_and_up_to_date_recurring_expenses():
+    user = make_demo_user()
+
+    assert user.categories.filter(monthly_budget__isnull=False).exists()
+    recurring = {item.description: item for item in user.recurring_expenses.all()}
+    assert {"Alquiler", "Netflix", "Gimnasio"} <= set(recurring)
+    assert "Luz" not in recurring  # its amount changes every month
+    # Days already past this month are already in the sample data: next month is next.
+    assert recurring["Alquiler"].next_date == date(2026, 11, 1)
+    assert recurring["Alquiler"].last_date == date(2026, 10, 1)
+
+
+def test_recurring_expenses_do_not_duplicate_the_sample_data():
+    user = make_demo_user()
+    before = user.expenses.count()
+
+    recurring_expenses_create(today=TODAY)
+
+    assert user.expenses.count() == before
 
 
 class TestDeleteExpired:

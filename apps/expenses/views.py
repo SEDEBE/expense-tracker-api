@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle
 
 from .filters import ExpenseFilter
-from .models import Category, Expense
+from .models import Category, Expense, RecurringExpense
 from .renderers import CSVRenderer
 from .selectors import monthly_summary, monthly_totals
 from .serializers import (
@@ -24,8 +24,9 @@ from .serializers import (
     MonthlySummarySerializer,
     MonthQuerySerializer,
     MonthTotalSerializer,
+    RecurringExpenseSerializer,
 )
-from .services import expenses_csv
+from .services import expenses_csv, recurring_next_date
 from .tasks import check_budget_alert, send_monthly_summary_email
 
 
@@ -153,3 +154,30 @@ class ExpenseViewSet(viewsets.ModelViewSet):
         )
         data = [{"month": row["month"].strftime("%Y-%m"), "total": row["total"]} for row in rows]
         return Response(MonthTotalSerializer(data, many=True).data)
+
+
+class RecurringExpenseViewSet(viewsets.ModelViewSet):
+    serializer_class = RecurringExpenseSerializer
+
+    def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return RecurringExpense.objects.none()
+        return self.request.user.recurring_expenses.select_related("category")
+
+    def perform_create(self, serializer):
+        day = serializer.validated_data["day_of_month"]
+        next_date = recurring_next_date(day_of_month=day, today=timezone.localdate())
+        serializer.save(user=self.request.user, next_date=next_date)
+
+    def perform_update(self, serializer):
+        recurring = serializer.instance
+        day = serializer.validated_data.get("day_of_month", recurring.day_of_month)
+        active = serializer.validated_data.get("active", recurring.active)
+        # A new day, or resuming after a pause, moves the next date; amounts and names don't.
+        if day != recurring.day_of_month or (active and not recurring.active):
+            next_date = recurring_next_date(
+                day_of_month=day, today=timezone.localdate(), last_date=recurring.last_date
+            )
+            serializer.save(next_date=next_date)
+        else:
+            serializer.save()
