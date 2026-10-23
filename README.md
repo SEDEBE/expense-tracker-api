@@ -205,6 +205,12 @@ Rent, subscriptions and other fixed costs are saved once as recurring expenses. 
 caught up with the right dates, running twice never duplicates (each row is locked while it is
 processed), and new expenses go through the budget check like any other.
 
+## Error tracking
+
+In production, setting `SENTRY_DSN` reports unhandled errors from requests and Celery tasks to
+[Sentry](https://sentry.io) with their stack trace, and times a 10% sample of requests. No personal
+data is sent (`send_default_pii=False`). Without the variable, nothing is reported.
+
 ## Monthly summary emails
 
 On the first day of each month at 07:00 UTC, every active user who had expenses in the
