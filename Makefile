@@ -14,7 +14,7 @@ worker: ## Run a Celery worker locally (needs `make db`)
 beat: ## Run Celery beat locally (needs `make db`)
 	uv run celery -A config beat --loglevel info
 
-db:  ## Start Postgres, Redis and Mailplit in Docker
+db:  ## Start Postgres, Redis and Mailpit in Docker
 	docker compose up -d db redis mailpit
 
 test: compilemessages ## Run the test suite with coverage
