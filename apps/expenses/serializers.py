@@ -77,3 +77,7 @@ class HistoryQuerySerializer(serializers.Serializer):
 class MonthTotalSerializer(serializers.Serializer):
     month = serializers.CharField()
     total = serializers.DecimalField(max_digits=12, decimal_places=2)
+
+
+class DetailSerializer(serializers.Serializer):
+    detail = serializers.CharField()
