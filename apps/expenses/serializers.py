@@ -63,3 +63,17 @@ class MonthlySummarySerializer(serializers.Serializer):
     month = serializers.CharField()
     total = serializers.DecimalField(max_digits=12, decimal_places=2)
     by_category = CategoryTotalSerializer(many=True)
+
+
+class HistoryQuerySerializer(serializers.Serializer):
+    months = serializers.IntegerField(
+        min_value=1,
+        max_value=24,
+        default=6,
+        help_text="How many months to return, ending with the current one.",
+    )
+
+
+class MonthTotalSerializer(serializers.Serializer):
+    month = serializers.CharField()
+    total = serializers.DecimalField(max_digits=12, decimal_places=2)
