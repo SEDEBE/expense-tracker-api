@@ -6,7 +6,12 @@ from django.utils import timezone
 
 from .models import Expense
 from .selectors import previous_month
-from .services import budget_alert_check, monthly_summaries_send, monthly_summary_send
+from .services import (
+    budget_alert_check,
+    monthly_summaries_send,
+    monthly_summary_send,
+    recurring_expenses_create,
+)
 
 
 @shared_task
@@ -35,3 +40,9 @@ def check_budget_alert(expense_id: int) -> int | None:
     if expense is None:
         return None
     return budget_alert_check(expense=expense)
+
+
+@shared_task
+def create_recurring_expenses() -> int:
+    """Daily: create the expenses that recurring expenses have due today (or missed)."""
+    return len(recurring_expenses_create())

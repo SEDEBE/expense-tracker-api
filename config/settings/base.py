@@ -151,6 +151,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.expenses.tasks.send_monthly_summaries",
         "schedule": crontab(minute=0, hour=7, day_of_month=1),
     },
+    "create-recurring-expenses": {
+        "task": "apps.expenses.tasks.create_recurring_expenses",
+        "schedule": crontab(minute=30, hour=5),
+    },
     "delete-expired-demo-users": {
         "task": "apps.demo.tasks.delete_expired_demo_users",
         "schedule": crontab(minute=15),

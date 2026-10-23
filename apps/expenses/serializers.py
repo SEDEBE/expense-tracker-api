@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
-from .models import Category, Expense
+from .models import Category, Expense, RecurringExpense
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -43,6 +43,30 @@ class ExpenseSerializer(serializers.ModelSerializer):
         model = Expense
         fields = ["id", "amount", "date", "description", "category", "created_at", "updated_at"]
         read_only_fields = ["id", "created_at", "updated_at"]
+
+
+class RecurringExpenseSerializer(serializers.ModelSerializer):
+    category = UserCategoryField(allow_null=True, required=False)
+    amount = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=Decimal("0.01"))
+    day_of_month = serializers.IntegerField(min_value=1, max_value=31)
+
+    class Meta:
+        model = RecurringExpense
+        fields = [
+            "id",
+            "amount",
+            "description",
+            "category",
+            "day_of_month",
+            "active",
+            "next_date",
+            "last_date",
+            "created_at",
+        ]
+        read_only_fields = ["id", "next_date", "last_date", "created_at"]
+
+    def validate_description(self, value):
+        return value.strip()
 
 
 class MonthQuerySerializer(serializers.Serializer):
