@@ -7,7 +7,10 @@
 REST API to track personal expenses: register, log in with JWT, record expenses by category
 and get monthly summaries.
 
-> 🚧 Work in progress. Done so far: project setup, users and JWT auth, categories, expenses, monthly summaries, summary emails and English/Spanish support, monthly emails scheduled with Celery, and demo accounts. Next: a React frontend and a live deployment.
+It is the backend of a full-stack project:
+
+- **Frontend**: [expense-tracker-web](https://github.com/SEDEBE/expense-tracker-web) (React + TypeScript), with a one-click demo account.
+- **Production setup**: [portfolio-infra](https://github.com/SEDEBE/portfolio-infra) (Docker Compose, Caddy with automatic HTTPS, images on GHCR, deployment from CI over SSH, nightly backups).
 
 ## Tech stack
 
@@ -229,4 +232,7 @@ Every pull request and push to `main` runs:
 2. **Test**: compiles translations, checks for pending migrations, runs `check --deploy`
    against production settings, and runs the test suite with coverage against a real
    PostgreSQL service.
-3. **Docker**: builds the production image.
+3. **Docker**: builds the production image; on `main` it is also published to GHCR
+   (`ghcr.io/sedebe/expense-tracker-api`).
+4. **Deploy** (only on `main`, once the server is configured): pulls the new image on the
+   server and restarts the API, worker and beat.
