@@ -1,9 +1,11 @@
+import csv
+import io
 from datetime import date
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import translation
-from django.utils.formats import date_format, number_format
+from django.utils.formats import date_format, get_format, number_format
 from django.utils.translation import gettext as _
 from django.utils.translation import ngettext
 
@@ -88,3 +90,28 @@ def monthly_summaries_send(*, year: int, month: int) -> int:
         .distinct()
     )
     return sum(monthly_summary_send(user=user, year=year, month=month) for user in users)
+
+
+def expenses_csv(expenses) -> str:
+    """The expenses as CSV in the active language, ready to open with a double click in Excel.
+
+    Where the decimal separator is a comma (Spanish), Excel expects `;` between columns, so that
+    is what it gets; English gets the standard `,` and a decimal point. A byte order mark at the
+    start tells Excel the file is UTF-8, so accents survive.
+    """
+    decimal = get_format("DECIMAL_SEPARATOR")
+    delimiter = ";" if decimal == "," else ","
+    out = io.StringIO()
+    out.write("\ufeff")
+    writer = csv.writer(out, delimiter=delimiter, lineterminator="\r\n")
+    writer.writerow([_("Date"), _("Description"), _("Category"), _("Amount")])
+    for expense in expenses:
+        writer.writerow(
+            [
+                expense.date.isoformat(),
+                expense.description,
+                expense.category.name if expense.category else _("Uncategorized"),
+                f"{expense.amount:.2f}".replace(".", decimal),
+            ]
+        )
+    return out.getvalue()
