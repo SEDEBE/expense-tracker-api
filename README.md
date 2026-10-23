@@ -189,7 +189,8 @@ make compilemessages   # compile the .po file
 ## Monthly summary emails
 
 On the first day of each month at 07:00 UTC, every active user who had expenses in the
-previous month gets an email with their summary, in their own language.
+previous month gets an email with their summary, in their own language. Emails are sent as plain
+text plus an HTML version (`apps/core/templates/emails/`) that looks like the app.
 Users can also ask for it at any time from the dashboard (`POST /expenses/summary/email/`): the
 API answers at once with `202 Accepted` and a Celery worker sends the email, retrying if the mail
 server fails for a moment.

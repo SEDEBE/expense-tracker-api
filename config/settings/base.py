@@ -87,6 +87,7 @@ LANGUAGES = [
     ("es", _("Spanish")),
 ]
 LOCALE_PATHS = [BASE_DIR / "locale"]
+FORMAT_MODULE_PATH = ["config.formats"]
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True

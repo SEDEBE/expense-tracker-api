@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-23 13:41+0000\n"
+"POT-Creation-Date: 2026-10-23 14:04+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,6 +18,10 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? "
 "1 : 2;\n"
+
+#: apps/core/emails.py:25
+msgid "You get this email because you have an account on Gastos."
+msgstr "Recibes este email porque tienes una cuenta en Gastos."
 
 #: apps/demo/views.py:32
 msgid "The demo is not available."
@@ -31,34 +35,34 @@ msgstr "La categoría debe pertenecer al mismo usuario que el gasto."
 msgid "You already have a category with this name."
 msgstr "Ya tienes una categoría con este nombre."
 
-#: apps/expenses/services.py:15
+#: apps/expenses/services.py:17
 #, python-format
 msgid "€%(amount)s"
 msgstr "%(amount)s €"
 
-#: apps/expenses/services.py:28 apps/users/services.py:88
+#: apps/expenses/services.py:31 apps/users/services.py:94
 msgid "Hi,"
 msgstr "Hola,"
 
-#: apps/expenses/services.py:30
+#: apps/expenses/services.py:33
 #, python-format
 msgid "Here is your expense summary for %(month)s."
 msgstr "Este es el resumen de tus gastos de %(month)s."
 
-#: apps/expenses/services.py:32
+#: apps/expenses/services.py:35 apps/expenses/services.py:60
 #, python-format
 msgid "Total: %(total)s"
 msgstr "Total: %(total)s"
 
-#: apps/expenses/services.py:34
+#: apps/expenses/services.py:37
 msgid "By category:"
 msgstr "Por categoría:"
 
-#: apps/expenses/services.py:37
+#: apps/expenses/services.py:42
 msgid "Uncategorized"
 msgstr "Sin categoría"
 
-#: apps/expenses/services.py:40
+#: apps/expenses/services.py:45 apps/expenses/services.py:63
 #, python-format
 msgid "%(count)d expense"
 msgid_plural "%(count)d expenses"
@@ -66,10 +70,18 @@ msgstr[0] "%(count)d gasto"
 msgstr[1] "%(count)d gastos"
 msgstr[2] "%(count)d gastos"
 
-#: apps/expenses/services.py:42
+#: apps/expenses/services.py:50
 #, python-format
 msgid "Your expense summary for %(month)s"
 msgstr "Resumen de tus gastos de %(month)s"
+
+#: apps/expenses/services.py:65
+msgid "By category"
+msgstr "Por categoría"
+
+#: apps/expenses/services.py:68
+msgid "Open it in the app"
+msgstr "Verlo en la app"
 
 #: apps/expenses/views.py:94
 msgid ""
@@ -88,19 +100,11 @@ msgstr "No hay gastos en %(month)s que enviar."
 msgid "We're sending the summary to %(email)s."
 msgstr "Te estamos enviando el resumen a %(email)s."
 
-#: apps/users/services.py:85
+#: apps/users/services.py:87
 msgid "Reset your password"
 msgstr "Restablece tu contraseña"
 
-#: apps/users/services.py:91
-msgid ""
-"Someone asked to reset the password of your account. If it was you, open "
-"this link to choose a new one:"
-msgstr ""
-"Alguien ha pedido restablecer la contraseña de tu cuenta. Si has sido tú, "
-"abre este enlace para elegir una nueva:"
-
-#: apps/users/services.py:98
+#: apps/users/services.py:89
 #, python-format
 msgid ""
 "The link works for %(hours)d hours and only once. If you did not ask for it, "
@@ -109,7 +113,29 @@ msgstr ""
 "El enlace funciona durante %(hours)d horas y una sola vez. Si no lo has "
 "pedido, ignora este correo: tu contraseña no cambia."
 
-#: apps/users/services.py:109
+#: apps/users/services.py:97
+msgid ""
+"Someone asked to reset the password of your account. If it was you, open "
+"this link to choose a new one:"
+msgstr ""
+"Alguien ha pedido restablecer la contraseña de tu cuenta. Si has sido tú, "
+"abre este enlace para elegir una nueva:"
+
+#: apps/users/services.py:107
+msgid ""
+"Someone asked to reset the password of your account. If it was you, choose a "
+"new one with the button below."
+msgstr "Alguien ha pedido restablecer la contraseña de tu cuenta. Si has sido tú, elige una nueva con el botón de abajo."
+
+#: apps/users/services.py:119
+msgid "Choose a new password"
+msgstr "Elegir una contraseña nueva"
+
+#: apps/users/services.py:121
+msgid "If the button doesn't work, copy this link into your browser:"
+msgstr "Si el botón no funciona, copia este enlace en el navegador:"
+
+#: apps/users/services.py:128
 msgid "This link is not valid or has expired. Ask for a new one."
 msgstr "Este enlace no es válido o ha caducado. Pide uno nuevo."
 

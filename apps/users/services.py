@@ -2,12 +2,13 @@ from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
-from django.core.mail import send_mail
 from django.db import transaction
 from django.utils import translation
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import gettext as _
+
+from apps.core.emails import email_send
 
 from .models import User
 
@@ -81,9 +82,14 @@ def password_reset_link(user: User) -> str:
 
 def password_reset_email_send(*, user: User) -> None:
     hours = settings.PASSWORD_RESET_TIMEOUT // 3600
+    link = password_reset_link(user)
     with translation.override(user.language):
         subject = _("Reset your password")
-        body = "\n".join(
+        expiry = _(
+            "The link works for %(hours)d hours and only once. If you did not ask "
+            "for it, ignore this email: your password stays the same."
+        ) % {"hours": hours}
+        text = "\n".join(
             [
                 _("Hi,"),
                 "",
@@ -92,16 +98,29 @@ def password_reset_email_send(*, user: User) -> None:
                     "If it was you, open this link to choose a new one:"
                 ),
                 "",
-                password_reset_link(user),
+                link,
                 "",
-                _(
-                    "The link works for %(hours)d hours and only once. If you did not ask "
-                    "for it, ignore this email: your password stays the same."
-                )
-                % {"hours": hours},
+                expiry,
             ]
         )
-    send_mail(subject=subject, message=body, from_email=None, recipient_list=[user.email])
+        intro = _(
+            "Someone asked to reset the password of your account. "
+            "If it was you, choose a new one with the button below."
+        )
+        email_send(
+            to=user.email,
+            subject=subject,
+            text=text,
+            template="emails/password_reset.html",
+            context={
+                "preheader": intro,
+                "intro": intro,
+                "button_url": link,
+                "button_label": _("Choose a new password"),
+                "expiry": expiry,
+                "fallback": _("If the button doesn't work, copy this link into your browser:"),
+            },
+        )
 
 
 def password_reset_confirm(*, uid: str, token: str, password: str) -> User:

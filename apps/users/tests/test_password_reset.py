@@ -37,6 +37,10 @@ class TestRequest:
         assert email.to == [user.email]
         assert email.subject == "Restablece tu contraseña"
         assert "https://gastos.example.com/restablecer?uid=" in email.body
+        html, mimetype = email.alternatives[0]
+        assert mimetype == "text/html"
+        assert 'href="https://gastos.example.com/restablecer?uid=' in html
+        assert "Elegir una contraseña nueva" in html
 
     def test_answers_the_same_for_an_unknown_email(self, api_client, mailoutbox):
         UserFactory(email="ana@example.com")
