@@ -67,6 +67,25 @@ def test_sends_summary_email_in_the_users_language(mailoutbox):
     assert "- Sin categoría: 4,50 € (1 gasto)" in email.body
 
 
+def test_summary_email_has_an_html_version(mailoutbox, settings):
+    settings.FRONTEND_URL = "https://gastos.example.com"
+    user = UserFactory(language="es")
+    food = CategoryFactory(user=user, name="Comida")
+    ExpenseFactory(user=user, category=food, date=date(2026, 10, 1), amount=Decimal("30"))
+    ExpenseFactory(user=user, category=None, date=date(2026, 10, 3), amount=Decimal("15"))
+
+    monthly_summary_send(user=user, year=2026, month=10)
+
+    html, mimetype = mailoutbox[0].alternatives[0]
+    assert mimetype == "text/html"
+    assert "45,00 €" in html
+    assert "Comida" in html and "Sin categoría" in html
+    # Each bar is the category's share of the biggest one.
+    assert 'width="100%"' in html and 'width="50%"' in html
+    assert "https://gastos.example.com/?mes=2026-10" in html
+    assert "Recibes este email porque tienes una cuenta en Gastos." in html
+
+
 def test_monthly_summaries_send_uses_each_users_language(mailoutbox):
     ExpenseFactory(user=UserFactory(email="ana@example.com", language="es"), date=date(2026, 10, 5))
     ExpenseFactory(user=UserFactory(email="bob@example.com", language="en"), date=date(2026, 10, 5))
@@ -85,3 +104,12 @@ def test_monthly_summaries_send_skips_demo_users(mailoutbox):
 
     assert monthly_summaries_send(year=2026, month=10) == 0
     assert mailoutbox == []
+
+
+def test_summary_amounts_group_thousands_with_a_dot_in_spanish(mailoutbox):
+    user = UserFactory(language="es")
+    ExpenseFactory(user=user, category=None, date=date(2026, 10, 1), amount=Decimal("1234.5"))
+
+    monthly_summary_send(user=user, year=2026, month=10)
+
+    assert "Total: 1.234,50 €" in mailoutbox[0].body

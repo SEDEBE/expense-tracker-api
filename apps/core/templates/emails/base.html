@@ -1,0 +1,52 @@
+<!doctype html>
+{% comment %}
+  Shared layout of every email. Email clients ignore <style> blocks and modern CSS, so the layout is
+  tables with inline styles. All texts arrive already translated from Python.
+{% endcomment %}
+<html lang="{{ language }}">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>{{ subject }}</title>
+  </head>
+  <body style="margin:0; padding:0; background:#f2f4f7;">
+    {# Preview text that inboxes show next to the subject; hidden in the email itself. #}
+    <div style="display:none; max-height:0; overflow:hidden; opacity:0;">{{ preheader }}</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f2f4f7;">
+      <tr>
+        <td align="center" style="padding:32px 16px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+            style="max-width:560px; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color:#111111;">
+            <tr>
+              <td style="padding:0 4px 16px;">
+                <table role="presentation" cellpadding="0" cellspacing="0">
+                  <tr>
+                    {# The app's mark: three bars of different length on the data blue. #}
+                    <td width="12" style="background:#1d5fbf; border-radius:6px; padding:5px; line-height:0; font-size:0;">
+                      <div style="width:12px; height:2px; margin:0 0 2px; background:#ffffff; border-radius:1px;"></div>
+                      <div style="width:8px; height:2px; margin:0 0 2px; background:#ffffff; border-radius:1px;"></div>
+                      <div style="width:5px; height:2px; background:#ffffff; border-radius:1px;"></div>
+                    </td>
+                    <td style="padding-left:10px; font-size:15px; font-weight:600;">Gastos</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="background:#ffffff; border:1px solid #e3e6eb; border-radius:8px; padding:28px 28px 32px;">
+                {% block content %}{% endblock %}
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:20px 4px 0; font-size:12px; line-height:1.5; color:#5f6368;">
+                {{ footer }}<br />
+                <a href="{{ app_url }}" style="color:#5f6368;">{{ app_host }}</a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
