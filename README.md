@@ -109,6 +109,19 @@ curl -X POST localhost:8000/api/v1/auth/token/ \
   -d '{"email": "ana@example.com", "password": "S3cure-pass!"}'
 ```
 
+### Calling the API from a frontend
+
+Browsers block requests to another origin unless the API allows it (CORS). Allowed origins
+come from `CORS_ALLOWED_ORIGINS`, a comma-separated list in `.env`. `.env.example` allows
+the Vite dev server:
+
+```bash
+CORS_ALLOWED_ORIGINS=http://localhost:5173
+```
+
+Nothing is allowed by default, and credentials (cookies) are not allowed because
+authentication uses the `Authorization` header.
+
 ## Languages
 
 The API and the emails are available in English (default) and Spanish.
