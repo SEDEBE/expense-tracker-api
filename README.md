@@ -17,7 +17,7 @@ It is the backend of a full-stack project:
 | Area | Tools |
 |---|---|
 | Backend | Python 3.14, Django 5.2 LTS, Django REST Framework |
-| Auth | JWT (`djangorestframework-simplejwt`), email-based custom user |
+| Auth | JWT (`djangorestframework-simplejwt`), email-based custom user, Sign in with Google (`google-auth`) |
 | Database | PostgreSQL 18 |
 | Background jobs | Celery 5.6 (worker + beat) with Redis 8 as the broker, Mailpit as a local test inbox |
 | API docs | OpenAPI 3 with `drf-spectacular` (Swagger UI) |
@@ -71,6 +71,7 @@ All endpoints live under `/api/v1/`. Send the access token as `Authorization: Be
 | POST | `/auth/token/` | Get access + refresh tokens | – |
 | POST | `/auth/token/refresh/` | Get a new access token | – |
 | POST | `/auth/demo/` | Create a throwaway demo account with sample data and get its tokens | – |
+| POST | `/auth/google/` | Log in or sign up with a Google ID token and get tokens | – |
 | GET / PATCH | `/auth/me/` | View or update your profile | ✅ |
 | GET / POST | `/categories/` | List or create your categories | ✅ |
 | GET / PATCH / DELETE | `/categories/{id}/` | View, rename or delete one of your categories | ✅ |
@@ -127,6 +128,19 @@ Spanish, and the response has the same tokens as `/auth/token/`.
 - Each call creates a user, so it is limited to 10 per hour per IP. Behind a reverse proxy,
   set `NUM_PROXIES` so the limit sees the client's IP and not the proxy's.
 - Turned on with `DEMO_ENABLED=True`; when it is off the endpoint returns `404`.
+
+### Sign in with Google
+
+The frontend shows Google's button, which returns a signed ID token. `POST /auth/google/` with
+`{"credential": "<token>"}` checks the token with Google's public keys (signature, expiry and
+that it was issued for this app's `GOOGLE_CLIENT_ID`) and returns the same JWT pair as
+`/auth/token/`.
+
+- An existing account with the same email logs in; otherwise a new one is created without a
+  usable password. Google must have verified the email.
+- Get a client ID in Google Cloud console → APIs & Services → Credentials → OAuth client ID
+  (type "Web application"), with the frontend's origins as authorized JavaScript origins. It is
+  free. Leave `GOOGLE_CLIENT_ID` empty to turn the endpoint off (`404`).
 
 ### Calling the API from a frontend
 
