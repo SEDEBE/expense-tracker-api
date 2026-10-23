@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from apps.expenses.models import Expense
+from apps.expenses.selectors import add_months
 from apps.expenses.tests.factories import CategoryFactory, ExpenseFactory
 
 pytestmark = pytest.mark.django_db
@@ -203,6 +204,40 @@ class TestExpenseSummary:
 
         assert response.status_code == 400
         assert "month" in response.data
+
+    def test_requires_authentication(self, api_client):
+        assert api_client.get(self.url).status_code == 401
+
+
+class TestExpenseHistory:
+    url = reverse("expenses:expense-history")
+
+    def test_returns_the_last_months_ending_with_the_current_one(self, auth_client, user):
+        today = timezone.localdate()
+        ExpenseFactory(user=user, date=today, amount=Decimal("7"))
+        ExpenseFactory(user=user, date=add_months(today, -2), amount=Decimal("3.5"))
+
+        response = auth_client.get(self.url, {"months": 3})
+
+        assert response.status_code == 200
+        assert response.data == [
+            {"month": add_months(today, -2).strftime("%Y-%m"), "total": "3.50"},
+            {"month": add_months(today, -1).strftime("%Y-%m"), "total": "0.00"},
+            {"month": today.strftime("%Y-%m"), "total": "7.00"},
+        ]
+
+    def test_defaults_to_six_months(self, auth_client):
+        response = auth_client.get(self.url)
+
+        assert response.status_code == 200
+        assert len(response.data) == 6
+
+    @pytest.mark.parametrize("months", ["0", "25", "six"])
+    def test_rejects_invalid_months(self, auth_client, months):
+        response = auth_client.get(self.url, {"months": months})
+
+        assert response.status_code == 400
+        assert "months" in response.data
 
     def test_requires_authentication(self, api_client):
         assert api_client.get(self.url).status_code == 401
