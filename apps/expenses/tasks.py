@@ -4,8 +4,9 @@ from celery import shared_task
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
+from .models import Expense
 from .selectors import previous_month
-from .services import monthly_summaries_send, monthly_summary_send
+from .services import budget_alert_check, monthly_summaries_send, monthly_summary_send
 
 
 @shared_task
@@ -25,3 +26,12 @@ def send_monthly_summary_email(user_id: int, year: int, month: int) -> bool:
     if user is None:
         return False
     return monthly_summary_send(user=user, year=year, month=month)
+
+
+@shared_task(autoretry_for=(SMTPException, ConnectionError), retry_backoff=True, max_retries=3)
+def check_budget_alert(expense_id: int) -> int | None:
+    """Runs after an expense is saved, outside the request, so the API answers without waiting."""
+    expense = Expense.objects.select_related("category", "user").filter(pk=expense_id).first()
+    if expense is None:
+        return None
+    return budget_alert_check(expense=expense)

@@ -16,6 +16,15 @@ CATEGORIES = [
     "Ropa",
 ]
 
+# Monthly budgets for some categories, so the demo shows the budgets card. A couple of them
+# usually end up close to or over the limit, which is the interesting case.
+BUDGETS = {
+    "Supermercado": Decimal("350.00"),
+    "Restaurantes": Decimal("150.00"),
+    "Ocio": Decimal("100.00"),
+    "Ropa": Decimal("80.00"),
+}
+
 # Expenses that happen once a month: (category, description, day of the month, min, max).
 MONTHLY = [
     ("Vivienda", "Alquiler", 1, Decimal("650.00"), Decimal("650.00")),

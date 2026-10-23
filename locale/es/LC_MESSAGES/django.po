@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-23 14:08+0000\n"
+"POT-Creation-Date: 2026-10-23 14:14+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -27,42 +27,43 @@ msgstr "Recibes este email porque tienes una cuenta en Gastos."
 msgid "The demo is not available."
 msgstr "La demo no está disponible."
 
-#: apps/expenses/models.py:72
+#: apps/expenses/models.py:83
 msgid "The category must belong to the same user as the expense."
 msgstr "La categoría debe pertenecer al mismo usuario que el gasto."
 
-#: apps/expenses/serializers.py:22
+#: apps/expenses/serializers.py:23
 msgid "You already have a category with this name."
 msgstr "Ya tienes una categoría con este nombre."
 
-#: apps/expenses/services.py:19
+#: apps/expenses/services.py:21
 #, python-format
 msgid "€%(amount)s"
 msgstr "%(amount)s €"
 
-#: apps/expenses/services.py:33 apps/users/services.py:94
+#: apps/expenses/services.py:35 apps/expenses/services.py:179
+#: apps/users/services.py:94
 msgid "Hi,"
 msgstr "Hola,"
 
-#: apps/expenses/services.py:35
+#: apps/expenses/services.py:37
 #, python-format
 msgid "Here is your expense summary for %(month)s."
 msgstr "Este es el resumen de tus gastos de %(month)s."
 
-#: apps/expenses/services.py:37 apps/expenses/services.py:62
+#: apps/expenses/services.py:39 apps/expenses/services.py:64
 #, python-format
 msgid "Total: %(total)s"
 msgstr "Total: %(total)s"
 
-#: apps/expenses/services.py:39
+#: apps/expenses/services.py:41
 msgid "By category:"
 msgstr "Por categoría:"
 
-#: apps/expenses/services.py:44 apps/expenses/services.py:113
+#: apps/expenses/services.py:46 apps/expenses/services.py:115
 msgid "Uncategorized"
 msgstr "Sin categoría"
 
-#: apps/expenses/services.py:47 apps/expenses/services.py:65
+#: apps/expenses/services.py:49 apps/expenses/services.py:67
 #, python-format
 msgid "%(count)d expense"
 msgid_plural "%(count)d expenses"
@@ -70,52 +71,78 @@ msgstr[0] "%(count)d gasto"
 msgstr[1] "%(count)d gastos"
 msgstr[2] "%(count)d gastos"
 
-#: apps/expenses/services.py:52
+#: apps/expenses/services.py:54
 #, python-format
 msgid "Your expense summary for %(month)s"
 msgstr "Resumen de tus gastos de %(month)s"
 
-#: apps/expenses/services.py:67
+#: apps/expenses/services.py:69
 msgid "By category"
 msgstr "Por categoría"
 
-#: apps/expenses/services.py:70
+#: apps/expenses/services.py:72 apps/expenses/services.py:188
 msgid "Open it in the app"
 msgstr "Verlo en la app"
 
-#: apps/expenses/services.py:107
+#: apps/expenses/services.py:109
 msgid "Date"
 msgstr "Fecha"
 
-#: apps/expenses/services.py:107
+#: apps/expenses/services.py:109
 msgid "Description"
 msgstr "Descripción"
 
-#: apps/expenses/services.py:107
+#: apps/expenses/services.py:109
 msgid "Category"
 msgstr "Categoría"
 
-#: apps/expenses/services.py:107
+#: apps/expenses/services.py:109
 msgid "Amount"
 msgstr "Importe"
 
-#: apps/expenses/views.py:74
+#: apps/expenses/services.py:165
+#, python-format
+msgid "You've gone over your %(category)s budget"
+msgstr "Te has pasado del presupuesto de %(category)s"
+
+#: apps/expenses/services.py:166
+#, python-format
+msgid "You're %(amount)s over budget."
+msgstr "Te has pasado %(amount)s."
+
+#: apps/expenses/services.py:168
+#, python-format
+msgid "You've used %(percent)d%% of your %(category)s budget"
+msgstr "Llevas el %(percent)d %% del presupuesto de %(category)s"
+
+#: apps/expenses/services.py:172
+#, python-format
+msgid "You have %(amount)s left."
+msgstr "Te quedan %(amount)s."
+
+#: apps/expenses/services.py:173
+#, python-format
+msgid ""
+"This month you've spent %(spent)s of the %(budget)s budget for %(category)s."
+msgstr "Este mes llevas %(spent)s de los %(budget)s de presupuesto para %(category)s."
+
+#: apps/expenses/views.py:84
 msgid "expenses"
 msgstr "gastos"
 
-#: apps/expenses/views.py:116
+#: apps/expenses/views.py:126
 msgid ""
 "Demo accounts have a made-up email address, so they can't receive emails."
 msgstr ""
 "Las cuentas demo tienen un email inventado, así que no pueden recibir "
 "correos."
 
-#: apps/expenses/views.py:120
+#: apps/expenses/views.py:130
 #, python-format
 msgid "There are no expenses in %(month)s to send."
 msgstr "No hay gastos en %(month)s que enviar."
 
-#: apps/expenses/views.py:127
+#: apps/expenses/views.py:137
 #, python-format
 msgid "We're sending the summary to %(email)s."
 msgstr "Te estamos enviando el resumen a %(email)s."

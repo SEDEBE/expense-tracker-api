@@ -187,6 +187,14 @@ make messages          # extract new translatable strings into the .po file
 make compilemessages   # compile the .po file
 ```
 
+## Budgets
+
+Each category can have a monthly budget (`monthly_budget`, empty means none). After an expense is
+saved, a Celery task checks its category: when this month's spending reaches 80% and then 100% of
+the budget, the user gets an email. Each threshold is sent once per category and month
+(`BudgetAlert` records what was sent), and a jump past both sends only the 100% one. The task runs
+after the database commit, so the API answers without waiting for it.
+
 ## Monthly summary emails
 
 On the first day of each month at 07:00 UTC, every active user who had expenses in the

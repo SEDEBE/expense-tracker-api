@@ -4,13 +4,15 @@ from datetime import date
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.utils import translation
+from django.db.models import Sum
+from django.utils import timezone, translation
 from django.utils.formats import date_format, get_format, number_format
 from django.utils.translation import gettext as _
 from django.utils.translation import ngettext
 
 from apps.core.emails import email_send
 
+from .models import BudgetAlert
 from .selectors import month_range, monthly_summary
 
 
@@ -115,3 +117,74 @@ def expenses_csv(expenses) -> str:
             ]
         )
     return out.getvalue()
+
+
+# Percentages of a category's monthly budget that trigger an email, highest first.
+BUDGET_THRESHOLDS = (100, 80)
+
+
+def budget_alert_check(*, expense) -> int | None:
+    """After an expense is saved, warn the user if its category just reached a budget threshold.
+
+    Only this month counts, each threshold is emailed once per category and month, and when the
+    spending jumps past several thresholds at once only the highest one is sent. Returns the
+    threshold emailed, or None.
+    """
+    category, user = expense.category, expense.user
+    today = timezone.localdate()
+    if category is None or category.monthly_budget is None or user.is_demo:
+        return None
+    if (expense.date.year, expense.date.month) != (today.year, today.month):
+        return None
+
+    start, end = month_range(today.year, today.month)
+    spent = user.expenses.filter(category=category, date__gte=start, date__lt=end).aggregate(
+        total=Sum("amount")
+    )["total"]
+    percent = spent * 100 / category.monthly_budget
+    reached = [threshold for threshold in BUDGET_THRESHOLDS if percent >= threshold]
+    if not reached:
+        return None
+
+    # Recording every reached threshold means a lower one is never sent after a higher one.
+    created = [
+        BudgetAlert.objects.get_or_create(category=category, month=start, threshold=threshold)[1]
+        for threshold in reached
+    ]
+    if not created[0]:
+        return None
+    _budget_alert_email_send(user=user, category=category, spent=spent, threshold=reached[0])
+    return reached[0]
+
+
+def _budget_alert_email_send(*, user, category, spent, threshold) -> None:
+    budget = category.monthly_budget
+    with translation.override(user.language):
+        values = {"category": category.name, "spent": _money(spent), "budget": _money(budget)}
+        if threshold >= 100:
+            subject = _("You've gone over your %(category)s budget") % values
+            status = _("You're %(amount)s over budget.") % {"amount": _money(spent - budget)}
+        else:
+            subject = _("You've used %(percent)d%% of your %(category)s budget") % {
+                "percent": threshold,
+                "category": category.name,
+            }
+            status = _("You have %(amount)s left.") % {"amount": _money(budget - spent)}
+        progress = _("This month you've spent %(spent)s of the %(budget)s budget for %(category)s.")
+        progress %= values
+        app_url = settings.FRONTEND_URL.rstrip("/")
+        email_send(
+            to=user.email,
+            subject=subject,
+            text="\n".join([_("Hi,"), "", progress, status]),
+            template="emails/budget_alert.html",
+            context={
+                "preheader": status,
+                "progress": progress,
+                "status": status,
+                "over": threshold >= 100,
+                "width": min(100, round(spent * 100 / budget)),
+                "button_url": f"{app_url}/",
+                "button_label": _("Open it in the app"),
+            },
+        )

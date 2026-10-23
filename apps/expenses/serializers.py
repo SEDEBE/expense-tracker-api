@@ -9,8 +9,9 @@ from .models import Category, Expense
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ["id", "name", "created_at"]
+        fields = ["id", "name", "monthly_budget", "created_at"]
         read_only_fields = ["id", "created_at"]
+        extra_kwargs = {"monthly_budget": {"min_value": Decimal("0.01")}}
 
     def validate_name(self, value):
         value = value.strip()
