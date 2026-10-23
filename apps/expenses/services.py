@@ -46,11 +46,19 @@ def monthly_summary_send(*, user, year: int, month: int) -> bool:
 
 
 def monthly_summaries_send(*, year: int, month: int) -> int:
-    """Email every active user who had expenses that month. Returns how many emails were sent."""
+    """Email every active user who had expenses that month. Returns how many emails were sent.
+
+    Demo accounts are skipped: their addresses are fake and nobody reads them.
+    """
     start, end = month_range(year, month)
     users = (
         get_user_model()
-        .objects.filter(is_active=True, expenses__date__gte=start, expenses__date__lt=end)
+        .objects.filter(
+            is_active=True,
+            is_demo=False,
+            expenses__date__gte=start,
+            expenses__date__lt=end,
+        )
         .distinct()
     )
     return sum(monthly_summary_send(user=user, year=year, month=month) for user in users)

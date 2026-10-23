@@ -78,3 +78,10 @@ def test_monthly_summaries_send_uses_each_users_language(mailoutbox):
         "ana@example.com": "Resumen de tus gastos de octubre de 2026",
         "bob@example.com": "Your expense summary for October 2026",
     }
+
+
+def test_monthly_summaries_send_skips_demo_users(mailoutbox):
+    ExpenseFactory(user=UserFactory(is_demo=True), date=date(2026, 10, 5))
+
+    assert monthly_summaries_send(year=2026, month=10) == 0
+    assert mailoutbox == []
