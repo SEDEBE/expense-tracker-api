@@ -72,6 +72,8 @@ All endpoints live under `/api/v1/`. Send the access token as `Authorization: Be
 | POST | `/auth/token/refresh/` | Get a new access token | – |
 | POST | `/auth/demo/` | Create a throwaway demo account with sample data and get its tokens | – |
 | POST | `/auth/google/` | Log in or sign up with a Google ID token and get tokens | – |
+| POST | `/auth/password-reset/` | Email a link to reset the password (same answer whether the account exists or not) | – |
+| POST | `/auth/password-reset/confirm/` | Set a new password with the `uid` and `token` from that link | – |
 | GET / PATCH | `/auth/me/` | View or update your profile | ✅ |
 | GET / POST | `/categories/` | List or create your categories | ✅ |
 | GET / PATCH / DELETE | `/categories/{id}/` | View, rename or delete one of your categories | ✅ |
@@ -141,6 +143,15 @@ that it was issued for this app's `GOOGLE_CLIENT_ID`) and returns the same JWT p
 - Get a client ID in Google Cloud console → APIs & Services → Credentials → OAuth client ID
   (type "Web application"), with the frontend's origins as authorized JavaScript origins. It is
   free. Leave `GOOGLE_CLIENT_ID` empty to turn the endpoint off (`404`).
+
+### Password reset
+
+`POST /auth/password-reset/` with an email sends, through Celery, a link to
+`FRONTEND_URL/restablecer?uid=…&token=…` in the user's language. The answer is the same whether or
+not an account uses that email, so it cannot be used to find out who is registered; demo accounts
+are skipped. The token comes from Django's `default_token_generator`: it expires after two hours
+(`PASSWORD_RESET_TIMEOUT`) and stops working once the password changes. Both endpoints are limited to
+5 requests per hour per IP.
 
 ### Calling the API from a frontend
 
