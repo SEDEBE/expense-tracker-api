@@ -5,17 +5,25 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import generics, permissions, status
 from rest_framework.exceptions import AuthenticationFailed, NotFound, ValidationError
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .google import google_token_verify
 from .serializers import (
     GoogleLoginSerializer,
+    PasswordResetConfirmSerializer,
+    PasswordResetSerializer,
     RegisterSerializer,
     TokenPairSerializer,
     UserSerializer,
 )
-from .services import user_create, user_get_or_create_from_google
+from .services import (
+    password_reset_confirm,
+    password_reset_request,
+    user_create,
+    user_get_or_create_from_google,
+)
 
 
 class RegisterView(APIView):
@@ -72,3 +80,40 @@ class GoogleLoginView(APIView):
         refresh = RefreshToken.for_user(user)
         data = {"access": str(refresh.access_token), "refresh": str(refresh)}
         return Response(TokenPairSerializer(data).data)
+
+
+class PasswordResetView(APIView):
+    """Email a link to reset the password. Answers the same whether or not the account exists."""
+
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "password_reset"
+
+    @extend_schema(request=PasswordResetSerializer, responses={202: dict})
+    def post(self, request):
+        serializer = PasswordResetSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        password_reset_request(email=serializer.validated_data["email"])
+        message = _("If an account uses that email, we have sent it a link to reset the password.")
+        return Response({"detail": message}, status=status.HTTP_202_ACCEPTED)
+
+
+class PasswordResetConfirmView(APIView):
+    """Set a new password with the uid and token from the reset email."""
+
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "password_reset"
+
+    @extend_schema(request=PasswordResetConfirmSerializer, responses={204: None})
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            password_reset_confirm(**serializer.validated_data)
+        except DjangoValidationError as exc:
+            detail = exc.message_dict if hasattr(exc, "error_dict") else {"password": exc.messages}
+            raise ValidationError(detail) from exc
+        return Response(status=status.HTTP_204_NO_CONTENT)

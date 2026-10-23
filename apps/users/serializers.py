@@ -26,3 +26,13 @@ class GoogleLoginSerializer(serializers.Serializer):
 class TokenPairSerializer(serializers.Serializer):
     access = serializers.CharField()
     refresh = serializers.CharField()
+
+
+class PasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    uid = serializers.CharField()
+    token = serializers.CharField()
+    password = serializers.CharField(write_only=True, style={"input_type": "password"})

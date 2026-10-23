@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-23 10:20+0000\n"
+"POT-Creation-Date: 2026-10-23 12:03+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -31,29 +31,34 @@ msgstr "La categoría debe pertenecer al mismo usuario que el gasto."
 msgid "You already have a category with this name."
 msgstr "Ya tienes una categoría con este nombre."
 
-#: apps/expenses/services.py:23
+#: apps/expenses/services.py:15
+#, python-format
+msgid "€%(amount)s"
+msgstr "%(amount)s €"
+
+#: apps/expenses/services.py:28 apps/users/services.py:88
 msgid "Hi,"
 msgstr "Hola,"
 
-#: apps/expenses/services.py:25
+#: apps/expenses/services.py:30
 #, python-format
 msgid "Here is your expense summary for %(month)s."
 msgstr "Este es el resumen de tus gastos de %(month)s."
 
-#: apps/expenses/services.py:27
+#: apps/expenses/services.py:32
 #, python-format
 msgid "Total: %(total)s"
 msgstr "Total: %(total)s"
 
-#: apps/expenses/services.py:29
+#: apps/expenses/services.py:34
 msgid "By category:"
 msgstr "Por categoría:"
 
-#: apps/expenses/services.py:32
+#: apps/expenses/services.py:37
 msgid "Uncategorized"
 msgstr "Sin categoría"
 
-#: apps/expenses/services.py:35
+#: apps/expenses/services.py:40
 #, python-format
 msgid "%(count)d expense"
 msgid_plural "%(count)d expenses"
@@ -61,22 +66,48 @@ msgstr[0] "%(count)d gasto"
 msgstr[1] "%(count)d gastos"
 msgstr[2] "%(count)d gastos"
 
-#: apps/expenses/services.py:37
+#: apps/expenses/services.py:42
 #, python-format
 msgid "Your expense summary for %(month)s"
 msgstr "Resumen de tus gastos de %(month)s"
 
-#: apps/users/views.py:55
+#: apps/users/services.py:85
+msgid "Reset your password"
+msgstr "Restablece tu contraseña"
+
+#: apps/users/services.py:91
+msgid ""
+"Someone asked to reset the password of your account. If it was you, open "
+"this link to choose a new one:"
+msgstr "Alguien ha pedido restablecer la contraseña de tu cuenta. Si has sido tú, abre este enlace para elegir una nueva:"
+
+#: apps/users/services.py:98
+#, python-format
+msgid ""
+"The link works for %(hours)d hours and only once. If you did not ask for it, "
+"ignore this email: your password stays the same."
+msgstr "El enlace funciona durante %(hours)d horas y una sola vez. Si no lo has pedido, ignora este correo: tu contraseña no cambia."
+
+#: apps/users/services.py:109
+msgid "This link is not valid or has expired. Ask for a new one."
+msgstr "Este enlace no es válido o ha caducado. Pide uno nuevo."
+
+#: apps/users/views.py:63
 msgid "Signing in with Google is not available."
 msgstr "El inicio de sesión con Google no está disponible."
 
-#: apps/users/views.py:61
+#: apps/users/views.py:69
 msgid "Google could not confirm your identity."
 msgstr "Google no ha podido confirmar tu identidad."
 
-#: apps/users/views.py:70
+#: apps/users/views.py:78
 msgid "This account is disabled."
 msgstr "Esta cuenta está desactivada."
+
+#: apps/users/views.py:98
+msgid ""
+"If an account uses that email, we have sent it a link to reset the password."
+msgstr "Si hay una cuenta con ese email, le hemos enviado un enlace para restablecer la contraseña."
 
 #: config/settings/base.py:86
 msgid "English"
