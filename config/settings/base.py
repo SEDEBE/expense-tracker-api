@@ -150,6 +150,9 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
+# "Sign in with Google": OAuth client ID from Google Cloud. Empty turns the feature off.
+GOOGLE_CLIENT_ID = env("GOOGLE_CLIENT_ID", default="")
+
 # Demo accounts: each visitor who presses "try the demo" gets a throwaway user with sample data.
 DEMO_ENABLED = env.bool("DEMO_ENABLED", default=False)
 DEMO_USER_TTL = timedelta(hours=env.int("DEMO_USER_TTL_HOURS", default=24))

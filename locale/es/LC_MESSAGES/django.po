@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-23 09:13+0000\n"
+"POT-Creation-Date: 2026-10-23 10:20+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -65,6 +65,18 @@ msgstr[2] "%(count)d gastos"
 #, python-format
 msgid "Your expense summary for %(month)s"
 msgstr "Resumen de tus gastos de %(month)s"
+
+#: apps/users/views.py:55
+msgid "Signing in with Google is not available."
+msgstr "El inicio de sesión con Google no está disponible."
+
+#: apps/users/views.py:61
+msgid "Google could not confirm your identity."
+msgstr "Google no ha podido confirmar tu identidad."
+
+#: apps/users/views.py:70
+msgid "This account is disabled."
+msgstr "Esta cuenta está desactivada."
 
 #: config/settings/base.py:86
 msgid "English"

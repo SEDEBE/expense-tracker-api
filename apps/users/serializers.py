@@ -17,3 +17,12 @@ class RegisterSerializer(serializers.Serializer):
     first_name = serializers.CharField(max_length=150, required=False, default="")
     last_name = serializers.CharField(max_length=150, required=False, default="")
     language = serializers.ChoiceField(choices=settings.LANGUAGES, required=False)
+
+
+class GoogleLoginSerializer(serializers.Serializer):
+    credential = serializers.CharField(help_text="ID token returned by Google Identity Services.")
+
+
+class TokenPairSerializer(serializers.Serializer):
+    access = serializers.CharField()
+    refresh = serializers.CharField()

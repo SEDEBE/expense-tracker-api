@@ -1,12 +1,21 @@
+from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.utils.translation import gettext as _
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics, permissions, status
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import AuthenticationFailed, NotFound, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
 
-from .serializers import RegisterSerializer, UserSerializer
-from .services import user_create
+from .google import google_token_verify
+from .serializers import (
+    GoogleLoginSerializer,
+    RegisterSerializer,
+    TokenPairSerializer,
+    UserSerializer,
+)
+from .services import user_create, user_get_or_create_from_google
 
 
 class RegisterView(APIView):
@@ -33,3 +42,33 @@ class MeView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+class GoogleLoginView(APIView):
+    """Log in or sign up with a Google account and get the same tokens as /auth/token/."""
+
+    permission_classes = [permissions.AllowAny]
+
+    @extend_schema(request=GoogleLoginSerializer, responses={200: TokenPairSerializer})
+    def post(self, request):
+        if not settings.GOOGLE_CLIENT_ID:
+            raise NotFound(_("Signing in with Google is not available."))
+        serializer = GoogleLoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            claims = google_token_verify(serializer.validated_data["credential"])
+        except ValueError as exc:
+            raise AuthenticationFailed(_("Google could not confirm your identity.")) from exc
+
+        user = user_get_or_create_from_google(
+            email=claims["email"],
+            first_name=claims.get("given_name", "")[:150],
+            last_name=claims.get("family_name", "")[:150],
+            language=request.LANGUAGE_CODE,
+        )
+        if not user.is_active:
+            raise AuthenticationFailed(_("This account is disabled."))
+
+        refresh = RefreshToken.for_user(user)
+        data = {"access": str(refresh.access_token), "refresh": str(refresh)}
+        return Response(TokenPairSerializer(data).data)
