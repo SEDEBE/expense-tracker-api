@@ -11,7 +11,7 @@ from apps.expenses.models import Category, Expense
 from apps.expenses.selectors import add_months, month_range
 from apps.users.models import User
 
-from .data import CATEGORIES, MONTHLY, OCCASIONAL
+from .data import BUDGETS, CATEGORIES, MONTHLY, OCCASIONAL
 
 # How many months of history a demo account starts with, the current one included.
 DEMO_MONTHS = 6
@@ -36,7 +36,10 @@ def demo_user_create(*, today: date | None = None, rng: random.Random | None = N
     user.set_unusable_password()
     user.save()
 
-    categories = {name: Category(user=user, name=name) for name in CATEGORIES}
+    categories = {
+        name: Category(user=user, name=name, monthly_budget=BUDGETS.get(name))
+        for name in CATEGORIES
+    }
     Category.objects.bulk_create(categories.values())
     Expense.objects.bulk_create(_sample_expenses(user, categories, today, rng))
     return user

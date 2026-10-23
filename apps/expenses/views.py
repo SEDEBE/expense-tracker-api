@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.formats import date_format
@@ -25,7 +26,7 @@ from .serializers import (
     MonthTotalSerializer,
 )
 from .services import expenses_csv
-from .tasks import send_monthly_summary_email
+from .tasks import check_budget_alert, send_monthly_summary_email
 
 
 class SummaryEmailThrottle(UserRateThrottle):
@@ -59,7 +60,16 @@ class ExpenseViewSet(viewsets.ModelViewSet):
         return self.request.user.expenses.all()
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        expense = serializer.save(user=self.request.user)
+        self._check_budget(expense)
+
+    def perform_update(self, serializer):
+        self._check_budget(serializer.save())
+
+    @staticmethod
+    def _check_budget(expense):
+        # After the commit, so the worker sees the saved expense.
+        transaction.on_commit(lambda: check_budget_alert.delay(expense.pk))
 
     @extend_schema(responses={(200, "text/csv"): OpenApiTypes.STR})
     @action(

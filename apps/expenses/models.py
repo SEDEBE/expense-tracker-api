@@ -12,6 +12,13 @@ class Category(models.Model):
         related_name="categories",
     )
     name = models.CharField(max_length=50)
+    monthly_budget = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Spending limit per month; empty means no budget",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -22,6 +29,10 @@ class Category(models.Model):
                 Lower("name"),
                 "user",
                 name="unique_category_name_per_user",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(monthly_budget__isnull=True) | models.Q(monthly_budget__gt=0),
+                name="category_budget_positive",
             ),
         ]
 
@@ -71,3 +82,22 @@ class Expense(models.Model):
             raise ValidationError(
                 {"category": _("The category must belong to the same user as the expense.")}
             )
+
+
+class BudgetAlert(models.Model):
+    """A budget warning already emailed, so each threshold is sent once per category and month."""
+
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="budget_alerts")
+    month = models.DateField(help_text="First day of the month the alert is about")
+    threshold = models.PositiveSmallIntegerField(help_text="Percentage of the budget reached")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["category", "month", "threshold"], name="one_budget_alert_per_threshold"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.category} {self.month:%Y-%m} {self.threshold}%"

@@ -1,0 +1,24 @@
+{% extends "emails/base.html" %}
+{% block content %}
+  <p style="margin:0; font-size:22px; line-height:1.3; font-weight:600; letter-spacing:-0.01em;">{{ subject }}</p>
+  <p style="margin:16px 0 0; font-size:15px; line-height:1.6;">{{ progress }}</p>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px; background:#e6e9ee; border-radius:4px;">
+    <tr>
+      <td>
+        <table role="presentation" width="{{ width }}%" cellpadding="0" cellspacing="0">
+          <tr><td height="8" style="background:{% if over %}#c4242a{% else %}#1d5fbf{% endif %}; border-radius:4px; font-size:0; line-height:0;">&nbsp;</td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+  <p style="margin:12px 0 0; font-size:15px; font-weight:600; color:{% if over %}#c4242a{% else %}#111111{% endif %};">{{ status }}</p>
+
+  <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:28px;">
+    <tr>
+      <td style="background:#1d1f20; border-radius:6px;">
+        <a href="{{ button_url }}" style="display:inline-block; padding:11px 18px; font-size:14px; font-weight:600; color:#ffffff; text-decoration:none;">{{ button_label }}</a>
+      </td>
+    </tr>
+  </table>
+{% endblock %}
