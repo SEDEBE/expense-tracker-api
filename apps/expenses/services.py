@@ -10,6 +10,11 @@ from django.utils.translation import ngettext
 from .selectors import month_range, monthly_summary
 
 
+def _money(value) -> str:
+    """An amount in the active language: '€1,234.50' in English, '1.234,50 €' in Spanish."""
+    return _("€%(amount)s") % {"amount": number_format(value, 2, force_grouping=True)}
+
+
 def monthly_summary_send(*, user, year: int, month: int) -> bool:
     """Email the user their summary for the month. Returns False if there was nothing to send."""
     summary = monthly_summary(user, year, month)
@@ -24,13 +29,13 @@ def monthly_summary_send(*, user, year: int, month: int) -> bool:
             "",
             _("Here is your expense summary for %(month)s.") % {"month": month_name},
             "",
-            _("Total: %(total)s") % {"total": number_format(summary["total"], 2)},
+            _("Total: %(total)s") % {"total": _money(summary["total"])},
             "",
             _("By category:"),
         ]
         for row in summary["by_category"]:
             name = row["category"] or _("Uncategorized")
-            total = number_format(row["total"], 2)
+            total = _money(row["total"])
             count = row["count"]
             expenses = ngettext("%(count)d expense", "%(count)d expenses", count) % {"count": count}
             lines.append(f"- {name}: {total} ({expenses})")

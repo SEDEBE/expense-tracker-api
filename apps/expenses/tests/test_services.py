@@ -23,9 +23,9 @@ def test_sends_summary_email(user, mailoutbox):
     email = mailoutbox[0]
     assert email.to == [user.email]
     assert email.subject == "Your expense summary for October 2026"
-    assert "Total: 25.00" in email.body
-    assert "- Food: 20.50 (2 expenses)" in email.body
-    assert "- Uncategorized: 4.50 (1 expense)" in email.body
+    assert "Total: €25.00" in email.body
+    assert "- Food: €20.50 (2 expenses)" in email.body
+    assert "- Uncategorized: €4.50 (1 expense)" in email.body
 
 
 def test_sends_nothing_for_a_month_without_expenses(user, mailoutbox):
@@ -62,9 +62,9 @@ def test_sends_summary_email_in_the_users_language(mailoutbox):
 
     email = mailoutbox[0]
     assert email.subject == "Resumen de tus gastos de octubre de 2026"
-    assert "Total: 25,00" in email.body
-    assert "- Comida: 20,50 (2 gastos)" in email.body
-    assert "- Sin categoría: 4,50 (1 gasto)" in email.body
+    assert "Total: 25,00 €" in email.body
+    assert "- Comida: 20,50 € (2 gastos)" in email.body
+    assert "- Sin categoría: 4,50 € (1 gasto)" in email.body
 
 
 def test_monthly_summaries_send_uses_each_users_language(mailoutbox):
