@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     "apps.core",
     "apps.users",
     "apps.expenses",
+    "apps.demo",
 ]
 
 MIDDLEWARE = [
@@ -112,7 +113,9 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
     ],
-    "DEFAULT_THROTTLE_RATES": {"anon": "60/min", "user": "600/min"},
+    "DEFAULT_THROTTLE_RATES": {"anon": "60/min", "user": "600/min", "demo": "10/hour"},
+    # How many proxies (e.g. Caddy) sit in front of the API, so throttling sees the client's IP.
+    "NUM_PROXIES": env.int("NUM_PROXIES", default=None),
 }
 
 SIMPLE_JWT = {
@@ -141,4 +144,12 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.expenses.tasks.send_monthly_summaries",
         "schedule": crontab(minute=0, hour=7, day_of_month=1),
     },
+    "delete-expired-demo-users": {
+        "task": "apps.demo.tasks.delete_expired_demo_users",
+        "schedule": crontab(minute=15),
+    },
 }
+
+# Demo accounts: each visitor who presses "try the demo" gets a throwaway user with sample data.
+DEMO_ENABLED = env.bool("DEMO_ENABLED", default=False)
+DEMO_USER_TTL = timedelta(hours=env.int("DEMO_USER_TTL_HOURS", default=24))
