@@ -7,7 +7,7 @@
 REST API to track personal expenses: register, log in with JWT, record expenses by category
 and get monthly summaries.
 
-> 🚧 Work in progress. Done so far: project setup, users and JWT auth, categories, expenses, monthly summaries, summary emails and English/Spanish support, and monthly emails scheduled with Celery. Next: a live deployment and a frontend.
+> 🚧 Work in progress. Done so far: project setup, users and JWT auth, categories, expenses, monthly summaries, summary emails and English/Spanish support, monthly emails scheduled with Celery, and demo accounts. Next: a React frontend and a live deployment.
 
 ## Tech stack
 
@@ -67,12 +67,14 @@ All endpoints live under `/api/v1/`. Send the access token as `Authorization: Be
 | POST | `/auth/register/` | Create an account | – |
 | POST | `/auth/token/` | Get access + refresh tokens | – |
 | POST | `/auth/token/refresh/` | Get a new access token | – |
+| POST | `/auth/demo/` | Create a throwaway demo account with sample data and get its tokens | – |
 | GET / PATCH | `/auth/me/` | View or update your profile | ✅ |
 | GET / POST | `/categories/` | List or create your categories | ✅ |
 | GET / PATCH / DELETE | `/categories/{id}/` | View, rename or delete one of your categories | ✅ |
 | GET / POST | `/expenses/` | List (filtered, sorted, paginated) or create your expenses | ✅ |
 | GET / PATCH / DELETE | `/expenses/{id}/` | View, edit or delete one of your expenses | ✅ |
 | GET | `/expenses/summary/?month=YYYY-MM` | Monthly total and totals by category (defaults to the current month) | ✅ |
+| GET | `/expenses/history/?months=6` | Total of each of the last N months (1–24), oldest first, empty months as zero | ✅ |
 
 Expense list filters: `date_from`, `date_to`, `amount_min`, `amount_max`, `category`,
 `uncategorized=true`, and `ordering` by `date`, `amount` or `created_at` (prefix `-` for
@@ -108,6 +110,20 @@ curl -X POST localhost:8000/api/v1/auth/token/ \
   -H 'Content-Type: application/json' \
   -d '{"email": "ana@example.com", "password": "S3cure-pass!"}'
 ```
+
+### Demo accounts
+
+`POST /auth/demo/` gives every visitor their own throwaway account, so nobody sees what
+another visitor changed. It comes with categories and six months of realistic expenses in
+Spanish, and the response has the same tokens as `/auth/token/`.
+
+- Demo accounts have no usable password: the endpoint is the only way in.
+- They are flagged with `is_demo` (also returned by `/auth/me/`) and never get emails.
+- A Celery beat task deletes them every hour once they are older than `DEMO_USER_TTL_HOURS`
+  (24 by default), together with their data.
+- Each call creates a user, so it is limited to 10 per hour per IP. Behind a reverse proxy,
+  set `NUM_PROXIES` so the limit sees the client's IP and not the proxy's.
+- Turned on with `DEMO_ENABLED=True`; when it is off the endpoint returns `404`.
 
 ### Calling the API from a frontend
 
@@ -191,6 +207,10 @@ apps/
     services.py    business logic (summary emails)
     tasks.py       Celery task that sends the monthly summaries
     management/    send_monthly_summaries command
+  demo/            throwaway demo accounts
+    data.py        sample categories and expenses
+    services.py    create demo users and delete expired ones
+    tasks.py       hourly cleanup task
 locale/            Spanish translations (.po)
 ```
 
