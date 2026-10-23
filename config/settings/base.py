@@ -113,7 +113,12 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
     ],
-    "DEFAULT_THROTTLE_RATES": {"anon": "60/min", "user": "600/min", "demo": "10/hour"},
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "60/min",
+        "user": "600/min",
+        "demo": "10/hour",
+        "password_reset": "5/hour",
+    },
     # How many proxies (e.g. Caddy) sit in front of the API, so throttling sees the client's IP.
     "NUM_PROXIES": env.int("NUM_PROXIES", default=None),
 }
@@ -149,6 +154,11 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(minute=15),
     },
 }
+
+# Where the frontend lives: password reset emails link to its /restablecer page.
+FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:5173")
+# A password reset link works for two hours (and only once: changing the password voids it).
+PASSWORD_RESET_TIMEOUT = 60 * 60 * 2
 
 # "Sign in with Google": OAuth client ID from Google Cloud. Empty turns the feature off.
 GOOGLE_CLIENT_ID = env("GOOGLE_CLIENT_ID", default="")
