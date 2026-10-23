@@ -81,6 +81,7 @@ All endpoints live under `/api/v1/`. Send the access token as `Authorization: Be
 | GET / PATCH / DELETE | `/expenses/{id}/` | View, edit or delete one of your expenses | ✅ |
 | GET | `/expenses/summary/?month=YYYY-MM` | Monthly total and totals by category (defaults to the current month) | ✅ |
 | GET | `/expenses/history/?months=6` | Total of each of the last N months (1–24), oldest first, empty months as zero | ✅ |
+| GET | `/expenses/export/` | Expenses as CSV, with the list's filters and ordering (`;` and decimal commas in Spanish, for Excel) | ✅ |
 | POST | `/expenses/summary/email/` | Email me the summary of `{"month": "YYYY-MM"}` now (current month by default; 5 per hour, not for demo accounts) | ✅ |
 
 Expense list filters: `date_from`, `date_to`, `amount_min`, `amount_max`, `category`,
