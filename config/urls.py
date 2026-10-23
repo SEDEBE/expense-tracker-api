@@ -3,8 +3,10 @@ from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from apps.core.views import HealthView
+from apps.demo.views import DemoLoginView
 
 api_v1 = [
+    path("auth/demo/", DemoLoginView.as_view(), name="demo-login"),
     path("auth/", include("apps.users.urls")),
     path("", include("apps.expenses.urls")),
 ]

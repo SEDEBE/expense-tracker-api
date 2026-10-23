@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-21 10:49+0000\n"
+"POT-Creation-Date: 2026-10-23 09:13+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,6 +18,10 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? "
 "1 : 2;\n"
+
+#: apps/demo/views.py:32
+msgid "The demo is not available."
+msgstr "La demo no está disponible."
 
 #: apps/expenses/models.py:72
 msgid "The category must belong to the same user as the expense."
@@ -62,10 +66,10 @@ msgstr[2] "%(count)d gastos"
 msgid "Your expense summary for %(month)s"
 msgstr "Resumen de tus gastos de %(month)s"
 
-#: config/settings/base.py:81
+#: config/settings/base.py:86
 msgid "English"
 msgstr "Inglés"
 
-#: config/settings/base.py:82
+#: config/settings/base.py:87
 msgid "Spanish"
 msgstr "Español"

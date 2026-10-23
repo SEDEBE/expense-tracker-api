@@ -6,12 +6,14 @@ from rest_framework.response import Response
 
 from .filters import ExpenseFilter
 from .models import Category, Expense
-from .selectors import monthly_summary
+from .selectors import monthly_summary, monthly_totals
 from .serializers import (
     CategorySerializer,
     ExpenseSerializer,
+    HistoryQuerySerializer,
     MonthlySummarySerializer,
     MonthQuerySerializer,
+    MonthTotalSerializer,
 )
 
 
@@ -52,3 +54,17 @@ class ExpenseViewSet(viewsets.ModelViewSet):
         summary = monthly_summary(request.user, month.year, month.month)
         data = {"month": month.strftime("%Y-%m"), **summary}
         return Response(MonthlySummarySerializer(data).data)
+
+    @extend_schema(parameters=[HistoryQuerySerializer], responses=MonthTotalSerializer(many=True))
+    @action(detail=False, methods=["get"], filter_backends=[], pagination_class=None)
+    def history(self, request):
+        query = HistoryQuerySerializer(data=request.query_params)
+        query.is_valid(raise_exception=True)
+
+        rows = monthly_totals(
+            request.user,
+            last_month=timezone.localdate(),
+            months=query.validated_data["months"],
+        )
+        data = [{"month": row["month"].strftime("%Y-%m"), "total": row["total"]} for row in rows]
+        return Response(MonthTotalSerializer(data, many=True).data)
