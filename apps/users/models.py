@@ -39,6 +39,10 @@ class User(AbstractUser):
         default=settings.LANGUAGE_CODE,
         help_text="Language used for emails and other messages sent to the user",
     )
+    is_demo = models.BooleanField(
+        default=False,
+        help_text="Throwaway account created from the demo button; deleted after a while",
+    )
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
