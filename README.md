@@ -81,6 +81,7 @@ All endpoints live under `/api/v1/`. Send the access token as `Authorization: Be
 | GET / PATCH / DELETE | `/expenses/{id}/` | View, edit or delete one of your expenses | ✅ |
 | GET | `/expenses/summary/?month=YYYY-MM` | Monthly total and totals by category (defaults to the current month) | ✅ |
 | GET | `/expenses/history/?months=6` | Total of each of the last N months (1–24), oldest first, empty months as zero | ✅ |
+| POST | `/expenses/summary/email/` | Email me the summary of `{"month": "YYYY-MM"}` now (current month by default; 5 per hour, not for demo accounts) | ✅ |
 
 Expense list filters: `date_from`, `date_to`, `amount_min`, `amount_max`, `category`,
 `uncategorized=true`, and `ordering` by `date`, `amount` or `created_at` (prefix `-` for
@@ -189,6 +190,9 @@ make compilemessages   # compile the .po file
 
 On the first day of each month at 07:00 UTC, every active user who had expenses in the
 previous month gets an email with their summary, in their own language.
+Users can also ask for it at any time from the dashboard (`POST /expenses/summary/email/`): the
+API answers at once with `202 Accepted` and a Celery worker sends the email, retrying if the mail
+server fails for a moment.
 
 ```mermaid
 flowchart LR

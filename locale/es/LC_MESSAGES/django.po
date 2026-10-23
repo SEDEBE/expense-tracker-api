@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-23 12:03+0000\n"
+"POT-Creation-Date: 2026-10-23 13:41+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -71,6 +71,23 @@ msgstr[2] "%(count)d gastos"
 msgid "Your expense summary for %(month)s"
 msgstr "Resumen de tus gastos de %(month)s"
 
+#: apps/expenses/views.py:94
+msgid ""
+"Demo accounts have a made-up email address, so they can't receive emails."
+msgstr ""
+"Las cuentas demo tienen un email inventado, así que no pueden recibir "
+"correos."
+
+#: apps/expenses/views.py:98
+#, python-format
+msgid "There are no expenses in %(month)s to send."
+msgstr "No hay gastos en %(month)s que enviar."
+
+#: apps/expenses/views.py:105
+#, python-format
+msgid "We're sending the summary to %(email)s."
+msgstr "Te estamos enviando el resumen a %(email)s."
+
 #: apps/users/services.py:85
 msgid "Reset your password"
 msgstr "Restablece tu contraseña"
@@ -79,14 +96,18 @@ msgstr "Restablece tu contraseña"
 msgid ""
 "Someone asked to reset the password of your account. If it was you, open "
 "this link to choose a new one:"
-msgstr "Alguien ha pedido restablecer la contraseña de tu cuenta. Si has sido tú, abre este enlace para elegir una nueva:"
+msgstr ""
+"Alguien ha pedido restablecer la contraseña de tu cuenta. Si has sido tú, "
+"abre este enlace para elegir una nueva:"
 
 #: apps/users/services.py:98
 #, python-format
 msgid ""
 "The link works for %(hours)d hours and only once. If you did not ask for it, "
 "ignore this email: your password stays the same."
-msgstr "El enlace funciona durante %(hours)d horas y una sola vez. Si no lo has pedido, ignora este correo: tu contraseña no cambia."
+msgstr ""
+"El enlace funciona durante %(hours)d horas y una sola vez. Si no lo has "
+"pedido, ignora este correo: tu contraseña no cambia."
 
 #: apps/users/services.py:109
 msgid "This link is not valid or has expired. Ask for a new one."
@@ -107,7 +128,9 @@ msgstr "Esta cuenta está desactivada."
 #: apps/users/views.py:98
 msgid ""
 "If an account uses that email, we have sent it a link to reset the password."
-msgstr "Si hay una cuenta con ese email, le hemos enviado un enlace para restablecer la contraseña."
+msgstr ""
+"Si hay una cuenta con ese email, le hemos enviado un enlace para restablecer "
+"la contraseña."
 
 #: config/settings/base.py:86
 msgid "English"

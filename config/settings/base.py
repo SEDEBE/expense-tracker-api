@@ -118,6 +118,7 @@ REST_FRAMEWORK = {
         "user": "600/min",
         "demo": "10/hour",
         "password_reset": "5/hour",
+        "summary_email": "5/hour",
     },
     # How many proxies (e.g. Caddy) sit in front of the API, so throttling sees the client's IP.
     "NUM_PROXIES": env.int("NUM_PROXIES", default=None),
