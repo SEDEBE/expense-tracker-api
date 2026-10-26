@@ -19,7 +19,8 @@ ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
 
 INSTALLED_APPS = [
-    "django.contrib.admin",
+    # django.contrib.admin, with a lockout after failed logins (apps/core/admin.py)
+    "apps.core.apps.AdminConfig",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -73,6 +74,17 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 
 DATABASES = {"default": env.db("DATABASE_URL")}
+
+# Rate limits and the admin lockout count requests here. In production it must be shared (Redis):
+# with the per-process default, each gunicorn worker would keep its own count.
+CACHES = {"default": env.cache_url("CACHE_URL", default="locmemcache://")}
+
+# The admin lives at /<ADMIN_PATH>/. A path that is not "admin" keeps it away from the bots that
+# try passwords on every /admin/ they find.
+ADMIN_PATH = env("ADMIN_PATH", default="admin").strip("/")
+# Failed admin logins from one IP before it has to wait ADMIN_LOGIN_LOCKOUT_SECONDS.
+ADMIN_LOGIN_MAX_FAILURES = env.int("ADMIN_LOGIN_MAX_FAILURES", default=5)
+ADMIN_LOGIN_LOCKOUT_SECONDS = 60 * 15
 
 AUTH_USER_MODEL = "users.User"
 

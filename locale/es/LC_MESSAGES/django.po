@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 12:10+0000\n"
+"POT-Creation-Date: 2026-10-26 12:22+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,6 +18,10 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? "
 "1 : 2;\n"
+
+#: apps/core/admin.py:20
+msgid "Too many failed logins. Try again later."
+msgstr "Demasiados intentos fallidos. Vuelve a probar más tarde."
 
 #: apps/core/emails.py:25
 msgid "You get this email because you have an account on Gastos."
@@ -217,10 +221,10 @@ msgstr ""
 "Si hay una cuenta con ese email, le hemos enviado un enlace para restablecer "
 "la contraseña."
 
-#: config/settings/base.py:88
+#: config/settings/base.py:100
 msgid "English"
 msgstr "Inglés"
 
-#: config/settings/base.py:89
+#: config/settings/base.py:101
 msgid "Spanish"
 msgstr "Español"

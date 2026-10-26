@@ -168,6 +168,11 @@ session (their refresh tokens are revoked with simplejwt's token blacklist).
 
 - **Brute force:** logins (`/auth/token/`, `/auth/google/`) are limited to 10 per minute per IP,
   sign-ups to 10 per hour, besides the general limits (60/min anonymous, 600/min per user).
+- **Admin:** served at `/<ADMIN_PATH>/` (set a path other than `admin` in production, so bots
+  scanning for `/admin/` find nothing). After 5 failed logins an IP waits 15 minutes; good logins
+  are not counted.
+- **Shared counters:** rate limits and the lockout live in the cache (`CACHE_URL`). Production uses
+  Redis, so the three gunicorn workers share one count instead of allowing three times as many.
 - **Access control:** every query starts from `request.user`, and category ids from another user
   get the same error as missing ones, so ids can't be probed.
 - **SQL injection:** all queries go through the Django ORM, which sends values as parameters.
