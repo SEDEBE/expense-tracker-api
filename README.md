@@ -145,6 +145,11 @@ that it was issued for this app's `GOOGLE_CLIENT_ID`) and returns the same JWT p
 
 - An existing account with the same email logs in; otherwise a new one is created without a
   usable password. Google must have verified the email.
+- Signing up with a password does not prove the email is yours, so if an account was never
+  verified (`email_verified`), its password and sessions stop working the first time Google
+  confirms the address. This stops a "pre-account takeover": someone registering your email
+  first and waiting for you to arrive through Google. The owner can set a password again with a
+  reset email.
 - Get a client ID in Google Cloud console → APIs & Services → Credentials → OAuth client ID
   (type "Web application"), with the frontend's origins as authorized JavaScript origins. It is
   free. Leave `GOOGLE_CLIENT_ID` empty to turn the endpoint off (`404`).
@@ -156,7 +161,21 @@ that it was issued for this app's `GOOGLE_CLIENT_ID`) and returns the same JWT p
 not an account uses that email, so it cannot be used to find out who is registered; demo accounts
 are skipped. The token comes from Django's `default_token_generator`: it expires after two hours
 (`PASSWORD_RESET_TIMEOUT`) and stops working once the password changes. Both endpoints are limited to
-5 requests per hour per IP.
+5 requests per hour per IP. A successful reset marks the email as verified and logs out every other
+session (their refresh tokens are revoked with simplejwt's token blacklist).
+
+### Security
+
+- **Brute force:** logins (`/auth/token/`, `/auth/google/`) are limited to 10 per minute per IP,
+  sign-ups to 10 per hour, besides the general limits (60/min anonymous, 600/min per user).
+- **Access control:** every query starts from `request.user`, and category ids from another user
+  get the same error as missing ones, so ids can't be probed.
+- **SQL injection:** all queries go through the Django ORM, which sends values as parameters.
+- **Validation:** amounts must be positive, dates between 1900 and 2100, names and descriptions a
+  single line (a line break would end up in an email subject).
+- **CSV injection:** exported cells that start with `=`, `+`, `-` or `@` get a leading `'`, so
+  Excel shows them as text instead of running them as formulas.
+- **Revocable sessions:** refresh tokens are recorded, a nightly task deletes the expired ones.
 
 ### Calling the API from a frontend
 

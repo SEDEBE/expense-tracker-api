@@ -29,6 +29,8 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework",
     "rest_framework_simplejwt",
+    # Keeps a record of refresh tokens so they can be revoked (password reset, account takeover).
+    "rest_framework_simplejwt.token_blacklist",
     "django_filters",
     "drf_spectacular",
     # Local
@@ -118,6 +120,9 @@ REST_FRAMEWORK = {
         "anon": "60/min",
         "user": "600/min",
         "demo": "10/hour",
+        # Login endpoints: slow enough to make guessing passwords pointless.
+        "login": "10/min",
+        "register": "10/hour",
         "password_reset": "5/hour",
         "summary_email": "5/hour",
     },
@@ -154,6 +159,10 @@ CELERY_BEAT_SCHEDULE = {
     "create-recurring-expenses": {
         "task": "apps.expenses.tasks.create_recurring_expenses",
         "schedule": crontab(minute=30, hour=5),
+    },
+    "flush-expired-tokens": {
+        "task": "apps.users.tasks.flush_expired_tokens",
+        "schedule": crontab(minute=45, hour=4),
     },
     "delete-expired-demo-users": {
         "task": "apps.demo.tasks.delete_expired_demo_users",

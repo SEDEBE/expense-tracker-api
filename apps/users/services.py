@@ -7,6 +7,7 @@ from django.utils import translation
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import gettext as _
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 
 from apps.core.emails import email_send
 
@@ -47,16 +48,44 @@ def user_get_or_create_from_google(
 
     Google has already verified the email, so an existing account with the same address is the
     same person. New users get no usable password: they log in with Google.
+
+    An account signed up with a password but never verified could have been created by someone
+    else with this address, waiting for the owner to arrive through Google ("pre-account
+    takeover"). That password, and every session opened with it, stop working here; the owner can
+    set a new one with a password reset email.
     """
     email = User.objects.normalize_email(email)
     user = User.objects.filter(email__iexact=email).first()
     if user is not None:
+        if not user.email_verified:
+            if user.has_usable_password():
+                user.set_unusable_password()
+                user_sessions_end(user)
+            user.email_verified = True
+            user.save(update_fields=["password", "email_verified"])
         return user
-    user = User(email=email, first_name=first_name, last_name=last_name, language=language)
+    user = User(
+        email=email,
+        first_name=first_name,
+        last_name=last_name,
+        language=language,
+        email_verified=True,
+    )
     user.set_unusable_password()
     user.full_clean()
     user.save()
     return user
+
+
+def user_sessions_end(user: User) -> int:
+    """Revoke every refresh token of the user, logging them out everywhere. Returns how many.
+
+    Access tokens are not stored, so an open session keeps working until its access token
+    expires (ACCESS_TOKEN_LIFETIME, 15 minutes).
+    """
+    tokens = OutstandingToken.objects.filter(user=user, blacklistedtoken__isnull=True)
+    BlacklistedToken.objects.bulk_create([BlacklistedToken(token=token) for token in tokens])
+    return len(tokens)
 
 
 def password_reset_request(*, email: str) -> bool:
@@ -124,7 +153,11 @@ def password_reset_email_send(*, user: User) -> None:
 
 
 def password_reset_confirm(*, uid: str, token: str, password: str) -> User:
-    """Set a new password from a reset link. Raises ValidationError for a bad link or password."""
+    """Set a new password from a reset link. Raises ValidationError for a bad link or password.
+
+    The link arrived by email, so the address is now verified. Sessions opened with the old
+    password end: whoever knew it (the reason for the reset, often) is logged out.
+    """
     message = _("This link is not valid or has expired. Ask for a new one.")
     invalid = ValidationError({"detail": message})
     try:
@@ -135,5 +168,7 @@ def password_reset_confirm(*, uid: str, token: str, password: str) -> User:
         raise invalid
     validate_password(password, user=user)
     user.set_password(password)
-    user.save(update_fields=["password"])
+    user.email_verified = True
+    user.save(update_fields=["password", "email_verified"])
+    user_sessions_end(user)
     return user

@@ -8,6 +8,8 @@ pytestmark = pytest.mark.django_db
 
 URL = reverse("users:google-login")
 ME_URL = reverse("users:me")
+TOKEN_URL = reverse("users:token-obtain")
+REFRESH_URL = reverse("users:token-refresh")
 CLAIMS = {
     "email": "ana@gmail.com",
     "email_verified": True,
@@ -57,8 +59,8 @@ def test_returns_tokens_that_work(api_client, google_says):
     assert api_client.get(ME_URL).data["email"] == "ana@gmail.com"
 
 
-def test_logs_in_an_existing_user_with_the_same_email(api_client, google_says):
-    existing = UserFactory(email="Ana@gmail.com")
+def test_logs_in_an_existing_verified_user_with_the_same_email(api_client, google_says):
+    existing = UserFactory(email="Ana@gmail.com", email_verified=True)
     google_says(CLAIMS)
 
     api_client.post(URL, {"credential": "token"})
@@ -66,6 +68,35 @@ def test_logs_in_an_existing_user_with_the_same_email(api_client, google_says):
     assert User.objects.count() == 1
     existing.refresh_from_db()
     assert existing.has_usable_password()  # their password still works
+
+
+def test_takes_an_unverified_account_back_from_whoever_set_its_password(api_client, google_says):
+    # Someone signed up with Ana's address before she ever used the app ("pre-account takeover").
+    UserFactory(email="ana@gmail.com")
+    squatter = api_client.post(TOKEN_URL, {"email": "ana@gmail.com", "password": "S3cure-pass!"})
+    google_says(CLAIMS)
+
+    response = api_client.post(URL, {"credential": "token"})
+
+    assert response.status_code == 200
+    user = User.objects.get(email="ana@gmail.com")
+    assert user.email_verified
+    assert not user.has_usable_password()
+    # The squatter's password and session stop working.
+    login = api_client.post(TOKEN_URL, {"email": "ana@gmail.com", "password": "S3cure-pass!"})
+    assert login.status_code == 401
+    refresh = api_client.post(REFRESH_URL, {"refresh": squatter.data["refresh"]})
+    assert refresh.status_code == 401
+    # Ana's own new session works.
+    assert api_client.post(REFRESH_URL, {"refresh": response.data["refresh"]}).status_code == 200
+
+
+def test_new_google_users_are_verified(api_client, google_says):
+    google_says(CLAIMS)
+
+    api_client.post(URL, {"credential": "token"})
+
+    assert User.objects.get(email="ana@gmail.com").email_verified
 
 
 def test_rejects_an_invalid_token(api_client, google_says):

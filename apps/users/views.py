@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .google import google_token_verify
 from .serializers import (
@@ -26,8 +27,19 @@ from .services import (
 )
 
 
+class LoginView(TokenObtainPairView):
+    """Email and password for a token pair. Attempts are limited per IP, so passwords can't be
+    guessed by trying thousands."""
+
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "login"
+
+
 class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]
+    # Every call creates an account: a few per hour and IP is plenty for real people.
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "register"
 
     @extend_schema(request=RegisterSerializer, responses={201: UserSerializer})
     def post(self, request):
@@ -56,6 +68,8 @@ class GoogleLoginView(APIView):
     """Log in or sign up with a Google account and get the same tokens as /auth/token/."""
 
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "login"
 
     @extend_schema(request=GoogleLoginSerializer, responses={200: TokenPairSerializer})
     def post(self, request):
