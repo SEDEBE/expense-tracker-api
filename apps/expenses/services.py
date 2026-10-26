@@ -95,6 +95,16 @@ def monthly_summaries_send(*, year: int, month: int) -> int:
     return sum(monthly_summary_send(user=user, year=year, month=month) for user in users)
 
 
+# A cell starting with one of these is a formula for Excel and LibreOffice: a description such as
+# "=HYPERLINK(...)" would run when the file is opened ("CSV injection").
+_FORMULA_STARTS = ("=", "+", "-", "@", "\t", "\r")
+
+
+def _csv_text(value: str) -> str:
+    """Text for a CSV cell that spreadsheets show as written and never run as a formula."""
+    return f"'{value}" if value.startswith(_FORMULA_STARTS) else value
+
+
 def expenses_csv(expenses) -> str:
     """The expenses as CSV in the active language, ready to open with a double click in Excel.
 
@@ -112,8 +122,8 @@ def expenses_csv(expenses) -> str:
         writer.writerow(
             [
                 expense.date.isoformat(),
-                expense.description,
-                expense.category.name if expense.category else _("Uncategorized"),
+                _csv_text(expense.description),
+                _csv_text(expense.category.name) if expense.category else _("Uncategorized"),
                 f"{expense.amount:.2f}".replace(".", decimal),
             ]
         )
