@@ -1,6 +1,7 @@
 from smtplib import SMTPException
 
 from celery import shared_task
+from django.core.management import call_command
 
 from .models import User
 from .services import password_reset_email_send
@@ -14,3 +15,9 @@ def send_password_reset_email(user_id: int) -> bool:
         return False
     password_reset_email_send(user=user)
     return True
+
+
+@shared_task
+def flush_expired_tokens() -> None:
+    """Delete expired refresh tokens from the revocation tables, which grow with every login."""
+    call_command("flushexpiredtokens")

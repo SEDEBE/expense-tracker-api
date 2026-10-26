@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-23 14:14+0000\n"
+"POT-Creation-Date: 2026-10-26 12:22+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,6 +19,10 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? "
 "1 : 2;\n"
 
+#: apps/core/admin.py:20
+msgid "Too many failed logins. Try again later."
+msgstr "Demasiados intentos fallidos. Vuelve a probar más tarde."
+
 #: apps/core/emails.py:25
 msgid "You get this email because you have an account on Gastos."
 msgstr "Recibes este email porque tienes una cuenta en Gastos."
@@ -27,43 +31,52 @@ msgstr "Recibes este email porque tienes una cuenta en Gastos."
 msgid "The demo is not available."
 msgstr "La demo no está disponible."
 
-#: apps/expenses/models.py:83
+#: apps/expenses/models.py:84
 msgid "The category must belong to the same user as the expense."
 msgstr "La categoría debe pertenecer al mismo usuario que el gasto."
 
-#: apps/expenses/serializers.py:23
+#: apps/expenses/serializers.py:19
+#, python-format
+msgid "Choose a date between %(min)s and %(max)s."
+msgstr "Elige una fecha entre el %(min)s y el %(max)s."
+
+#: apps/expenses/serializers.py:31
+msgid "Use a single line without special characters."
+msgstr "Escríbelo en una sola línea, sin caracteres especiales."
+
+#: apps/expenses/serializers.py:49
 msgid "You already have a category with this name."
 msgstr "Ya tienes una categoría con este nombre."
 
-#: apps/expenses/services.py:21
+#: apps/expenses/services.py:22
 #, python-format
 msgid "€%(amount)s"
 msgstr "%(amount)s €"
 
-#: apps/expenses/services.py:35 apps/expenses/services.py:179
-#: apps/users/services.py:94
+#: apps/expenses/services.py:36 apps/expenses/services.py:190
+#: apps/users/services.py:123
 msgid "Hi,"
 msgstr "Hola,"
 
-#: apps/expenses/services.py:37
+#: apps/expenses/services.py:38
 #, python-format
 msgid "Here is your expense summary for %(month)s."
 msgstr "Este es el resumen de tus gastos de %(month)s."
 
-#: apps/expenses/services.py:39 apps/expenses/services.py:64
+#: apps/expenses/services.py:40 apps/expenses/services.py:65
 #, python-format
 msgid "Total: %(total)s"
 msgstr "Total: %(total)s"
 
-#: apps/expenses/services.py:41
+#: apps/expenses/services.py:42
 msgid "By category:"
 msgstr "Por categoría:"
 
-#: apps/expenses/services.py:46 apps/expenses/services.py:115
+#: apps/expenses/services.py:47 apps/expenses/services.py:126
 msgid "Uncategorized"
 msgstr "Sin categoría"
 
-#: apps/expenses/services.py:49 apps/expenses/services.py:67
+#: apps/expenses/services.py:50 apps/expenses/services.py:68
 #, python-format
 msgid "%(count)d expense"
 msgid_plural "%(count)d expenses"
@@ -71,87 +84,88 @@ msgstr[0] "%(count)d gasto"
 msgstr[1] "%(count)d gastos"
 msgstr[2] "%(count)d gastos"
 
-#: apps/expenses/services.py:54
+#: apps/expenses/services.py:55
 #, python-format
 msgid "Your expense summary for %(month)s"
 msgstr "Resumen de tus gastos de %(month)s"
 
-#: apps/expenses/services.py:69
+#: apps/expenses/services.py:70
 msgid "By category"
 msgstr "Por categoría"
 
-#: apps/expenses/services.py:72 apps/expenses/services.py:188
+#: apps/expenses/services.py:73 apps/expenses/services.py:199
 msgid "Open it in the app"
 msgstr "Verlo en la app"
 
-#: apps/expenses/services.py:109
+#: apps/expenses/services.py:120
 msgid "Date"
 msgstr "Fecha"
 
-#: apps/expenses/services.py:109
+#: apps/expenses/services.py:120
 msgid "Description"
 msgstr "Descripción"
 
-#: apps/expenses/services.py:109
+#: apps/expenses/services.py:120
 msgid "Category"
 msgstr "Categoría"
 
-#: apps/expenses/services.py:109
+#: apps/expenses/services.py:120
 msgid "Amount"
 msgstr "Importe"
 
-#: apps/expenses/services.py:165
+#: apps/expenses/services.py:176
 #, python-format
 msgid "You've gone over your %(category)s budget"
 msgstr "Te has pasado del presupuesto de %(category)s"
 
-#: apps/expenses/services.py:166
+#: apps/expenses/services.py:177
 #, python-format
 msgid "You're %(amount)s over budget."
 msgstr "Te has pasado %(amount)s."
 
-#: apps/expenses/services.py:168
+#: apps/expenses/services.py:179
 #, python-format
 msgid "You've used %(percent)d%% of your %(category)s budget"
 msgstr "Llevas el %(percent)d %% del presupuesto de %(category)s"
 
-#: apps/expenses/services.py:172
+#: apps/expenses/services.py:183
 #, python-format
 msgid "You have %(amount)s left."
 msgstr "Te quedan %(amount)s."
 
-#: apps/expenses/services.py:173
+#: apps/expenses/services.py:184
 #, python-format
 msgid ""
 "This month you've spent %(spent)s of the %(budget)s budget for %(category)s."
-msgstr "Este mes llevas %(spent)s de los %(budget)s de presupuesto para %(category)s."
+msgstr ""
+"Este mes llevas %(spent)s de los %(budget)s de presupuesto para %(category)s."
 
-#: apps/expenses/views.py:84
+#: apps/expenses/views.py:85
 msgid "expenses"
 msgstr "gastos"
 
-#: apps/expenses/views.py:126
+#: apps/expenses/views.py:127
 msgid ""
 "Demo accounts have a made-up email address, so they can't receive emails."
 msgstr ""
 "Las cuentas demo tienen un email inventado, así que no pueden recibir "
 "correos."
 
-#: apps/expenses/views.py:130
+#: apps/expenses/views.py:131
 #, python-format
 msgid "There are no expenses in %(month)s to send."
 msgstr "No hay gastos en %(month)s que enviar."
 
-#: apps/expenses/views.py:137
+#: apps/expenses/views.py:138
 #, python-format
 msgid "We're sending the summary to %(email)s."
 msgstr "Te estamos enviando el resumen a %(email)s."
 
-#: apps/users/services.py:87
+#: apps/users/services.py:116
 msgid "Reset your password"
 msgstr "Restablece tu contraseña"
 
-#: apps/users/services.py:89
+#: apps/users/services.py:118
 #, python-format
 msgid ""
 "The link works for %(hours)d hours and only once. If you did not ask for it, "
@@ -160,7 +174,7 @@ msgstr ""
 "El enlace funciona durante %(hours)d horas y una sola vez. Si no lo has "
 "pedido, ignora este correo: tu contraseña no cambia."
 
-#: apps/users/services.py:97
+#: apps/users/services.py:126
 msgid ""
 "Someone asked to reset the password of your account. If it was you, open "
 "this link to choose a new one:"
@@ -168,7 +182,7 @@ msgstr ""
 "Alguien ha pedido restablecer la contraseña de tu cuenta. Si has sido tú, "
 "abre este enlace para elegir una nueva:"
 
-#: apps/users/services.py:107
+#: apps/users/services.py:136
 msgid ""
 "Someone asked to reset the password of your account. If it was you, choose a "
 "new one with the button below."
@@ -176,41 +190,41 @@ msgstr ""
 "Alguien ha pedido restablecer la contraseña de tu cuenta. Si has sido tú, "
 "elige una nueva con el botón de abajo."
 
-#: apps/users/services.py:119
+#: apps/users/services.py:148
 msgid "Choose a new password"
 msgstr "Elegir una contraseña nueva"
 
-#: apps/users/services.py:121
+#: apps/users/services.py:150
 msgid "If the button doesn't work, copy this link into your browser:"
 msgstr "Si el botón no funciona, copia este enlace en el navegador:"
 
-#: apps/users/services.py:128
+#: apps/users/services.py:161
 msgid "This link is not valid or has expired. Ask for a new one."
 msgstr "Este enlace no es válido o ha caducado. Pide uno nuevo."
 
-#: apps/users/views.py:63
+#: apps/users/views.py:77
 msgid "Signing in with Google is not available."
 msgstr "El inicio de sesión con Google no está disponible."
 
-#: apps/users/views.py:69
+#: apps/users/views.py:83
 msgid "Google could not confirm your identity."
 msgstr "Google no ha podido confirmar tu identidad."
 
-#: apps/users/views.py:78
+#: apps/users/views.py:92
 msgid "This account is disabled."
 msgstr "Esta cuenta está desactivada."
 
-#: apps/users/views.py:98
+#: apps/users/views.py:112
 msgid ""
 "If an account uses that email, we have sent it a link to reset the password."
 msgstr ""
 "Si hay una cuenta con ese email, le hemos enviado un enlace para restablecer "
 "la contraseña."
 
-#: config/settings/base.py:86
+#: config/settings/base.py:100
 msgid "English"
 msgstr "Inglés"
 
-#: config/settings/base.py:87
+#: config/settings/base.py:101
 msgid "Spanish"
 msgstr "Español"

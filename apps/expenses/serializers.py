@@ -1,9 +1,35 @@
+import unicodedata
+from datetime import date
 from decimal import Decimal
 
+from django.utils.formats import date_format
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from .models import Category, Expense, RecurringExpense
+
+# Dates outside this range are typos, and past year 9999 the month arithmetic would crash.
+MIN_DATE = date(1900, 1, 1)
+MAX_DATE = date(2100, 12, 31)
+
+
+def validate_date_range(value: date) -> date:
+    if not MIN_DATE <= value <= MAX_DATE:
+        raise serializers.ValidationError(
+            _("Choose a date between %(min)s and %(max)s.")
+            % {"min": date_format(MIN_DATE), "max": date_format(MAX_DATE)}
+        )
+    return value
+
+
+def validate_single_line(value: str) -> str:
+    """Names and descriptions are one line of text: no line breaks or other control characters.
+
+    A line break in a category name would also break the subject of the budget alert email.
+    """
+    if any(unicodedata.category(char) == "Cc" for char in value):
+        raise serializers.ValidationError(_("Use a single line without special characters."))
+    return value
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -14,7 +40,7 @@ class CategorySerializer(serializers.ModelSerializer):
         extra_kwargs = {"monthly_budget": {"min_value": Decimal("0.01")}}
 
     def validate_name(self, value):
-        value = value.strip()
+        value = validate_single_line(value.strip())
         user = self.context["request"].user
         duplicates = Category.objects.filter(user=user, name__iexact=value)
         if self.instance is not None:
@@ -44,6 +70,12 @@ class ExpenseSerializer(serializers.ModelSerializer):
         fields = ["id", "amount", "date", "description", "category", "created_at", "updated_at"]
         read_only_fields = ["id", "created_at", "updated_at"]
 
+    def validate_date(self, value):
+        return validate_date_range(value)
+
+    def validate_description(self, value):
+        return validate_single_line(value)
+
 
 class RecurringExpenseSerializer(serializers.ModelSerializer):
     category = UserCategoryField(allow_null=True, required=False)
@@ -66,7 +98,7 @@ class RecurringExpenseSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "next_date", "last_date", "created_at"]
 
     def validate_description(self, value):
-        return value.strip()
+        return validate_single_line(value.strip())
 
 
 class MonthQuerySerializer(serializers.Serializer):
@@ -75,6 +107,9 @@ class MonthQuerySerializer(serializers.Serializer):
         required=False,
         help_text="Month in YYYY-MM format. Defaults to the current month.",
     )
+
+    def validate_month(self, value):
+        return validate_date_range(value)
 
 
 class CategoryTotalSerializer(serializers.Serializer):

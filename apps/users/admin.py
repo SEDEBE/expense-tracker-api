@@ -8,14 +8,23 @@ from .models import User
 class UserAdmin(BaseUserAdmin):
     ordering = ["email"]
     list_display = ["email", "first_name", "last_name", "language", "is_demo", "date_joined"]
-    list_filter = ["is_demo", "is_staff", "is_active"]
+    list_filter = ["is_demo", "email_verified", "is_staff", "is_active"]
     search_fields = ["email", "first_name", "last_name"]
     fieldsets = (
         (None, {"fields": ("email", "password")}),
         ("Personal info", {"fields": ("first_name", "last_name", "language")}),
         (
             "Permissions",
-            {"fields": ("is_active", "is_demo", "is_staff", "is_superuser", "groups")},
+            {
+                "fields": (
+                    "is_active",
+                    "email_verified",
+                    "is_demo",
+                    "is_staff",
+                    "is_superuser",
+                    "groups",
+                )
+            },
         ),
         ("Important dates", {"fields": ("last_login", "date_joined")}),
     )

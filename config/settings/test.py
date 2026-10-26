@@ -6,6 +6,8 @@ STORAGES["staticfiles"]["BACKEND"] = "django.contrib.staticfiles.storage.StaticF
 REST_FRAMEWORK["DEFAULT_THROTTLE_CLASSES"] = []  # noqa: F405
 REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]["demo"] = None  # noqa: F405
 REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]["password_reset"] = None  # noqa: F405
+REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]["login"] = None  # noqa: F405
+REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]["register"] = None  # noqa: F405
 # Run Celery tasks inline, so code that calls .delay() can be tested without a broker.
 CELERY_TASK_ALWAYS_EAGER = True
 # No collected static files in tests, so WhiteNoise would only warn.

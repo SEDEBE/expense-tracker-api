@@ -11,6 +11,7 @@ pytestmark = pytest.mark.django_db
 REQUEST_URL = reverse("users:password-reset")
 CONFIRM_URL = reverse("users:password-reset-confirm")
 TOKEN_URL = reverse("users:token-obtain")
+REFRESH_URL = reverse("users:token-refresh")
 NEW_PASSWORD = "Otra-clave-segura-42"
 
 
@@ -79,6 +80,18 @@ class TestConfirm:
         assert response.status_code == 204
         login = api_client.post(TOKEN_URL, {"email": "ana@example.com", "password": NEW_PASSWORD})
         assert login.status_code == 200
+
+    def test_logs_out_every_other_session_and_verifies_the_email(self, api_client, mailoutbox):
+        user = UserFactory(email="ana@example.com")
+        old = api_client.post(TOKEN_URL, {"email": "ana@example.com", "password": "S3cure-pass!"})
+        uid, token = self.request_link(api_client, mailoutbox, user)
+
+        confirm(api_client, uid, token)
+
+        refresh = api_client.post(REFRESH_URL, {"refresh": old.data["refresh"]})
+        assert refresh.status_code == 401
+        user.refresh_from_db()
+        assert user.email_verified
 
     def test_a_link_works_only_once(self, api_client, mailoutbox):
         user = UserFactory()

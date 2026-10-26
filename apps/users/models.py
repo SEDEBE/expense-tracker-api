@@ -39,6 +39,13 @@ class User(AbstractUser):
         default=settings.LANGUAGE_CODE,
         help_text="Language used for emails and other messages sent to the user",
     )
+    email_verified = models.BooleanField(
+        default=False,
+        help_text=(
+            "The owner proved the address is theirs (Google login or a password reset link). "
+            "Signing up with a password alone does not prove it."
+        ),
+    )
     is_demo = models.BooleanField(
         default=False,
         help_text="Throwaway account created from the demo button; deleted after a while",
