@@ -19,7 +19,7 @@ RUN export SECRET_KEY=build-only DATABASE_URL=sqlite:////tmp/build.db \
     && .venv/bin/python manage.py collectstatic --noinput
 
 # ---- Runtime stage: only the venv and the code, no build tools ----
-FROM python:3.14-slim-trixie
+FROM python:3.15-slim-trixie
 ENV PYTHONUNBUFFERED=1 PATH="/app/.venv/bin:$PATH" DJANGO_SETTINGS_MODULE=config.settings.prod
 RUN groupadd --system app && useradd --system --gid app --no-create-home app
 WORKDIR /app
